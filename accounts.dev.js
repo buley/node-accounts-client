@@ -329,7 +329,7 @@ var Accounts = ( function() {
 			var data =  params.profile_data || {};
 			data.service = 'facebook';
 			console.log( 'putting facebook', data );
-			//Private.put( data, success, error );
+			Private.setProfile( 'facebook', data );
 		}	
 
 		var access_token = params.access_token;
@@ -369,7 +369,7 @@ var Accounts = ( function() {
 			var data =  params.profile_data || {};
 			data.service = 'foursquare';	
 			console.log('putting foursquare', data );
-			//Private.put( data, success, error );
+			Private.setProfile( 'foursquare', data );
 		}
 
 		var access_token = params.access_token;
@@ -408,7 +408,7 @@ var Accounts = ( function() {
 			data.service = 'evernote';
 
 			console.log('putting evernote', data );
-			//Private.put( data, success, error );
+			Private.setProfile( 'evernote', data );
 		}
 
 		var access_token = params.access_token;
@@ -451,7 +451,7 @@ var Accounts = ( function() {
 			data.service = 'twitter';
 
 			console.log('putting twitter', data );
-			//Private.put( data, success, error );
+			Private.setProfile( 'twitter', data );
 		}
 
 		var access_token = params.access_token;
@@ -767,7 +767,7 @@ var Accounts = ( function() {
 			var data = params.profile_data || {};
 			data.service = 'google';
 			cponsole.log('putting google',data);
-			//Private.put( data, success, error );
+			Private.setProfile( 'google', data );
 		}
 
 		var access_token = params.access_token;
