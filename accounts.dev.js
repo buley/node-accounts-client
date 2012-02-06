@@ -959,7 +959,7 @@ var Accounts = ( function() {
 
 	Private.storage.local.set = function( set_key, set_value ) {
 		if( 'string' !== typeof set_value ) {
-			set_value = JSON.encode( set_value );
+			set_value = JSON.stringify( set_value );
 		}
 		return Private.store.setItem( '_acc_' + set_key, set_value );
 	};
