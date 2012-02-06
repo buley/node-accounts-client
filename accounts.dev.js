@@ -29,19 +29,23 @@ var Accounts = ( function() {
 		Private.socket.on( 'response', function( response ) {
 	
 			if( 'twitter' == response.service && 'account' == response.response_type ) {
-				Private.twitter.handle_login( response );
+				Private.twitter.account_request( response );
 			}
 
 			if( 'facebook' == response.service && 'account' == response.response_type ) {
-				Private.facebook.handle_login( response );
+				Private.facebook.account_request( response );
 			}
 
 			if( 'google' == response.service && 'account' == response.response_type ) {
-				Private.google.handle_login( response );
+				Private.google.account_request( response );
 			}
 
 			if( 'foursquare' == response.service && 'account' == response.response_type ) {
-				Private.foursquare.handle_login( response );
+				Private.foursquare.account_request( response );
+			}	
+	
+			if( 'evernote' == response.service && 'account' == response.response_type ) {
+				Private.evernote.account_request( response );
 			}	
 		});
 
