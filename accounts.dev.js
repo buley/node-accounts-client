@@ -959,6 +959,6 @@ var Accounts = ( function() {
 		return vars;
 	};
 
-	return new Public();
+	return Public;
 
 }() );
