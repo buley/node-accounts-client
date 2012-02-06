@@ -46,9 +46,9 @@ var Accounts = ( function() {
 	
 			if( 'evernote' == response.service && 'account' == response.response_type ) {
 				Private.evernote.account_request( response );
-			}	
-		});
-
+			}
+		
+		} );
 
 		Private.detect_login();
 
