@@ -26,6 +26,26 @@ var Accounts = ( function() {
 			Private.connected = false;
 		});
 
+		Private.socket.on( 'response', function( data ) {
+	
+			if( 'twitter' == response.service && 'account' == response.response_type ) {
+				Private.twitter.handle_login( response );
+			}
+
+			if( 'facebook' == response.service && 'account' == response.response_type ) {
+				Private.facebook.handle_login( response );
+			}
+
+			if( 'google' == response.service && 'account' == response.response_type ) {
+				Private.google.handle_login( response );
+			}
+
+			if( 'foursquare' == response.service && 'account' == response.response_type ) {
+				Private.foursquare.handle_login( response );
+			}	
+		});
+
+
 		Private.detect_login();
 
 	};
