@@ -19,35 +19,15 @@ var Accounts = ( function() {
 
 		Private.socket.on( 'connect', function() {
 			Private.connected = true;
-			Private.do_logins();
+			Private.confirm();
 		} );
 
 		Private.socket.on( 'disconnect', function() {
 			Private.connected = false;
 		});
 
-		Private.socket.on( '_acc_response', function( response ) {
-	
-			if( 'twitter' == response.service && 'account' == response.response_type ) {
-				Private.twitter.account_request( response );
-			}
-
-			if( 'facebook' == response.service && 'account' == response.response_type ) {
-				Private.facebook.account_request( response );
-			}
-
-			if( 'google' == response.service && 'account' == response.response_type ) {
-				Private.google.account_request( response );
-			}
-
-			if( 'foursquare' == response.service && 'account' == response.response_type ) {
-				Private.foursquare.account_request( response );
-			}	
-	
-			if( 'evernote' == response.service && 'account' == response.response_type ) {
-				Private.evernote.account_request( response );
-			}
-		
+		Private.socket.on( '_acc_response', function( response ) {	
+			Public.prototype.request( response );
 		} );
 
 		Private.detect_login();
@@ -62,6 +42,14 @@ var Accounts = ( function() {
 		return ! this.connected();
 	};
 
+	Public.prototype.token = function( type ) {
+
+	};
+
+	Public.prototype.profile = function( type ) {
+
+	};
+	
 	Public.prototype.socket = function( socket ) {
 		Private.sockets = [];
 		if( 'undefined' !== typeof socket && null !== socket ) {
@@ -101,8 +89,6 @@ var Accounts = ( function() {
 		return Private.do_logout( type );
 	};
 
-
-
 	//acts as if you're emitting to single socket
 	Private.socket.emit = function( channel, message ) {
 		var x, socket, len = Private.sockets.length;
@@ -121,17 +107,6 @@ var Accounts = ( function() {
 				socket.on( event_name, callback );
 			}
 		}
-	};
-
-
-	Public.prototype.receive = function( message ) {
-		var message_type = message.type
-		  , message_data = message.data;
-	};
-
-	Public.prototype.send = function( message ) {
-		var message_type = message.type
-		, message_data = message.data;
 	};
 
 	//TODO: rename response var to request
@@ -433,7 +408,7 @@ var Accounts = ( function() {
 		}
 	};
 
-	Private.do_logins = function() {
+	Private.confirm = function() {
 
 		var url_vars = Private.utilities.get_url_vars();
 		var facebook_code = Private.storage.session.get( 'facebook_code' );
