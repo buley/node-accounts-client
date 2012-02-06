@@ -385,7 +385,7 @@ var Accounts = ( function() {
 			Private.storage.session.set( 'evernote_access_token', access_token );
 			Private.storage.session.set( 'evernote_access_token_secret', access_token_secret );
 
-			Private.evernote.connect();
+			//Private.evernote.connect();
 
 		}
 	};
@@ -428,7 +428,7 @@ var Accounts = ( function() {
 			Private.storage.session.set( 'twitter_access_token', access_token );
 			Private.storage.session.set( 'twitter_access_token_secret', access_token_secret );
 
-			Private.twitter.connect();
+			//Private.twitter.connect();
 
 		}
 	};
@@ -796,7 +796,7 @@ var Accounts = ( function() {
 
 			var on_success = function() {
 				Private.update();	
-				Private.evernote.connect();
+				//Private.evernote.connect();
 			}
 			
 			var on_error = function() {
@@ -862,7 +862,7 @@ var Accounts = ( function() {
 
 			var on_success = function() {
 				Private.update();	
-				Private.twitter.connect();
+				//Private.twitter.connect();
 			}
 			
 			var on_error = function() {
