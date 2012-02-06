@@ -517,9 +517,16 @@ var Accounts = ( function() {
 		}	
 		
 		if( 'undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier ) {
-			Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
-			Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
-			Private.state.replaceCurrent( '/', 'home' );
+			if( 'tumblr' === url_vars.service ) {
+				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
+				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.state.replaceCurrent( '/', 'home' );
+		 
+			} else {
+				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
+				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.state.replaceCurrent( '/', 'home' );
+			}
 		}
 		
 		if( 'undefined' !== typeof url_vars.logout && 'undefined' !== typeof url_vars.service ) {
