@@ -43,11 +43,15 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.token = function( type ) {
+		return Private.getAccessToken( type );
+	};
 
+	Public.prototype.secret = function( type ) {
+		return Private.getAccessTokenSecret( type );
 	};
 
 	Public.prototype.profile = function( type ) {
-
+		return Private.getProfile( type );
 	};
 	
 	Public.prototype.socket = function( socket ) {
@@ -221,6 +225,61 @@ var Accounts = ( function() {
 		return access_token;
 	};
 
+	Private.setAccessToken = function( type, token ) {
+		if( 'undefined' === typeof type || 'undefined' === typeof token
+			|| null === type || null === token ) {
+			return false;
+		}
+		return Private.storage.session.set( type + '_access_token', token );
+	};
+
+	Private.getAccessTokenSecret = function( type ) {
+		var access_token_secret = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'facebook_access_token_secret' );
+				break;
+			case 'twitter': 
+				access_token_secret = Private.storage.session.get( 'twitter_access_token_secret' );
+				break;
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
+				break;
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
+				break;
+			case 'evernote': 
+				access_token_secret = Private.storage.session.get( 'evernote_access_token_secret' );
+				break;
+			default: 
+				break;
+		};
+		return access_token_secret;
+	};
+
+	Private.setAccessTokenSecret = function( type, secret ) {
+		if( 'undefined' === typeof type || 'undefined' === typeof secret
+			|| null === type || null === secret ) {
+			return false;
+		}
+		Private.storage.session.set( type + '_access_token_secret', secret );
+	};
+
+	Private.getProfile = function ( type ) {
+		if( 'undefined' === typeof type || null === type ) {
+			return false;
+		}
+		return Private.storage.local.get( type + '_profile' );
+	};
+	
+	Private.setProfile = function ( type, data ) {
+		if( 'undefined' === typeof type || 'undefined' === typeof data
+			|| null === type || null === data ) {
+			return false;
+		}
+		return Private.storage.local.set( type + '_profile', data );
+	};
+	
 	Private.do_logout = function ( type ) {
 		var obj =  { 'request_type': 'account', 'command': 'logout', 'service': type };
 		obj[ 'access_token' ] = Private.getAccessToken( type );
