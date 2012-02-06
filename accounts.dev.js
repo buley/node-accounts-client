@@ -958,6 +958,9 @@ var Accounts = ( function() {
 	Private.storage.local = {};
 
 	Private.storage.local.set = function( set_key, set_value ) {
+		if( 'string' !== typeof set_value ) {
+			set_value = JSON.encode( set_value );
+		}
 		return Private.store.setItem( '_acc_' + set_key, set_value );
 	};
 		
@@ -966,7 +969,7 @@ var Accounts = ( function() {
 	};
 		
 	Private.storage.local.get = function( get_key ) {
-		return Private.store.getItem( '_acc_' + get_key );
+		return JSON.decode( Private.store.getItem( '_acc_' + get_key ) );
 	};
 
 	Private.storage.local.set_batch = function( dictionary ) {
