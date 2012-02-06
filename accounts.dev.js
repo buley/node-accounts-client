@@ -496,6 +496,14 @@ var Accounts = ( function() {
 			console.log('GOOGLE',google_code);
 			Private.storage.session.delete( 'google_code' );
 		}	
+		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
+		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
+		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
+			console.log('TUMBLR',tumblr_token,tumblr_verifier);
+			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_verifier': tumblr_verifier } );
+			Private.storage.session.delete( 'tumblr_oauth_request_token' );
+			Private.storage.session.delete( 'tumblr_oauth_request_verifier' );
+		}
 	};
 
 
