@@ -9,7 +9,7 @@ var Accounts = ( function() {
 	Private.twitter = Private.twitter || {};
 	Private.facebook = Private.facebook || {};
 	Private.foursquare = Private.foursquare || {};
-	Private.evernote = Private.evernote || {};
+	Private.tumblr = Private.tumblr || {};
 
 	var Public = function( socket ) {
 		
@@ -132,8 +132,8 @@ var Accounts = ( function() {
 			Private.foursquare.account_request( response );
 		}
 
-		if( 'evernote' == response.service && 'account' == response.response_type ) {
-			Private.evernote.account_request( response );
+		if( 'tumblr' == response.service && 'account' == response.response_type ) {
+			Private.tumblr.account_request( response );
 		}
 
 	};
@@ -216,8 +216,8 @@ var Accounts = ( function() {
 			case 'facebook': 
 				access_token = Private.storage.session.get( 'google_access_token' );
 				break;
-			case 'evernote': 
-				access_token = Private.storage.session.get( 'evernote_access_token' );
+			case 'tumblr': 
+				access_token = Private.storage.session.get( 'tumblr_access_token' );
 				break;
 			default: 
 				break;
@@ -248,8 +248,8 @@ var Accounts = ( function() {
 			case 'facebook': 
 				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
 				break;
-			case 'evernote': 
-				access_token_secret = Private.storage.session.get( 'evernote_access_token_secret' );
+			case 'tumblr': 
+				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
 				break;
 			default: 
 				break;
@@ -380,14 +380,14 @@ var Accounts = ( function() {
 		}
 	};
 
-	/* Evernote */
+	/* Tumblr */
 
-	Private.evernote = Private.evernote || {};
-	Private.evernote.connect = function() {
-		Private.connect( 'evernote', 1 );	
+	Private.tumblr = Private.tumblr || {};
+	Private.tumblr.connect = function() {
+		Private.connect( 'tumblr', 1 );	
 	};
 
-	Private.evernote.handle_confirm = function( params, on_success, on_error ) {
+	Private.tumblr.handle_confirm = function( params, on_success, on_error ) {
 		var success = function( params ) {
 			
 			if( 'function' == typeof on_success ) {
@@ -402,13 +402,13 @@ var Accounts = ( function() {
 			}
 		};
 
-		console.log('Private.evernote.handle_confirm()', params );
+		console.log('Private.tumblr.handle_confirm()', params );
 		if( !!params.profile_data ) {
 			var data =  params.profile_data || {};
-			data.service = 'evernote';
+			data.service = 'tumblr';
 
-			console.log('putting evernote', data );
-			Private.setProfile( 'evernote', data );
+			console.log('putting tumblr', data );
+			Private.setProfile( 'tumblr', data );
 		}
 
 		var access_token = params.access_token;
@@ -416,10 +416,10 @@ var Accounts = ( function() {
 		if( !!access_token ) {
 			console.log('access and secret tokens', access_token, access_token_secret );
 
-			Private.storage.session.set( 'evernote_access_token', access_token );
-			Private.storage.session.set( 'evernote_access_token_secret', access_token_secret );
+			Private.storage.session.set( 'tumblr_access_token', access_token );
+			Private.storage.session.set( 'tumblr_access_token_secret', access_token_secret );
 
-			//Private.evernote.connect();
+			//Private.tumblr.connect();
 
 		}
 	};
@@ -781,9 +781,9 @@ var Accounts = ( function() {
 		Private.connect( 'google', 2 );	
 	};
 
-	/* Evernote */
+	/* Tumblr */
 
-	Private.evernote.account_request = function( data ) {
+	Private.tumblr.account_request = function( data ) {
 
 		if( 'undefined' !== typeof data.logout_url ) {
 			if( !!Private.debug ) {
@@ -791,55 +791,55 @@ var Accounts = ( function() {
 			}
 			//toggle status indicator
 			//delete session storage
-			Private.storage.session.delete( 'evernote_access_token' );
-			Private.storage.session.delete( 'evernote_access_token_secret' );
+			Private.storage.session.delete( 'tumblr_access_token' );
+			Private.storage.session.delete( 'tumblr_access_token_secret' );
 
 			Private.update();
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'evernote' == data.service && 'account' == data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'tumblr' == data.service && 'account' == data.response_type && 'undefined' !== typeof data.login_url ) {
 
 			if( !!Private.debug ) {
 			//
-				console.log('hadling evernote login', data.login_url);
+				console.log('hadling tumblr login', data.login_url);
 			}
 			
 			window.location = data.login_url;
 
-		} else if( 'evernote' == data.service && 'account' == data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'tumblr' == data.service && 'account' == data.response_type && 'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
 				if( !!Private.debug ) {
-					console.log('Confirmed Evernote');	
+					console.log('Confirmed Tumblr');	
 				}
 
 			} else {
 
-				Private.storage.session.delete( 'evernote_access_token' );
-				Private.storage.session.delete( 'evernote_access_token_secret' );
+				Private.storage.session.delete( 'tumblr_access_token' );
+				Private.storage.session.delete( 'tumblr_access_token_secret' );
 				Private.update();	
 				
 				if( !!Private.debug ) {
-					console.log('Failed to confirm Evernote');
+					console.log('Failed to confirm Tumblr');
 				}
 
 			}
 
-		} else if( 'evernote' == data.service && 'account' == data.response_type && 'authorized' == data.account_status && 'undefined' == typeof data.connect_status ) {
+		} else if( 'tumblr' == data.service && 'account' == data.response_type && 'authorized' == data.account_status && 'undefined' == typeof data.connect_status ) {
 
 			var on_success = function() {
 				Private.update();	
-				//Private.evernote.connect();
+				//Private.tumblr.connect();
 			}
 			
 			var on_error = function() {
 				Private.update();
 			}
 
-			Private.evernote.handle_confirm( data, on_success, on_error );	
+			Private.tumblr.handle_confirm( data, on_success, on_error );	
 
-		} else if( 'evernote' == data.service && 'account' == data.response_type && 'unauthorized' == data.account_status ) {
+		} else if( 'tumblr' == data.service && 'account' == data.response_type && 'unauthorized' == data.account_status ) {
 
 			if( !!Private.debug ) {
 				console.log('error confirming account', data );
