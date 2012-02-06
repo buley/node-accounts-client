@@ -69,6 +69,16 @@ var Accounts = ( function() {
 		return Private.login_statuses();
 	};
 
+	Public.prototype.login = function( type ) {
+		return Private.do_login( type );
+	};
+
+	Public.prototype.logout = function( type ) {
+		return Private.do_logout( type );
+	};
+
+
+
 	//acts as if you're emitting to single socket
 	Private.socket.emit = function( channel, message ) {
 		var x, socket, len = Private.sockets.length;
