@@ -969,7 +969,7 @@ var Accounts = ( function() {
 	};
 		
 	Private.storage.local.get = function( get_key ) {
-		return JSON.decode( Private.store.getItem( '_acc_' + get_key ) );
+		return JSON.parse( Private.store.getItem( '_acc_' + get_key ) );
 	};
 
 	Private.storage.local.set_batch = function( dictionary ) {
