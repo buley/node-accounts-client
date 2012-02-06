@@ -26,7 +26,7 @@ var Accounts = ( function() {
 			Private.connected = false;
 		});
 
-		Private.socket.on( 'response', function( data ) {
+		Private.socket.on( 'response', function( response ) {
 	
 			if( 'twitter' == response.service && 'account' == response.response_type ) {
 				Private.twitter.handle_login( response );
