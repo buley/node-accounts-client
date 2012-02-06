@@ -295,7 +295,7 @@ var Accounts = ( function() {
 			var data =  params.profile_data || {};
 			data.service = 'facebook';
 			console.log( 'putting facebook', data );
-			Private.put( data, success, error );
+			//Private.put( data, success, error );
 		}	
 
 		var access_token = params.access_token;
@@ -335,7 +335,7 @@ var Accounts = ( function() {
 			var data =  params.profile_data || {};
 			data.service = 'foursquare';	
 			console.log('putting foursquare', data );
-			Private.put( data, success, error );
+			//Private.put( data, success, error );
 		}
 
 		var access_token = params.access_token;
@@ -374,7 +374,7 @@ var Accounts = ( function() {
 			data.service = 'evernote';
 
 			console.log('putting evernote', data );
-			Private.put( data, success, error );
+			//Private.put( data, success, error );
 		}
 
 		var access_token = params.access_token;
@@ -417,7 +417,7 @@ var Accounts = ( function() {
 			data.service = 'twitter';
 
 			console.log('putting twitter', data );
-			Private.put( data, success, error );
+			//Private.put( data, success, error );
 		}
 
 		var access_token = params.access_token;
@@ -732,15 +732,14 @@ var Accounts = ( function() {
 		if( params.profile_data ) {
 			var data = params.profile_data || {};
 			data.service = 'google';
-			Private.put( data, success, error );
+			cponsole.log('putting google',data);
+			//Private.put( data, success, error );
 		}
 
 		var access_token = params.access_token;
 		if( !!access_token ) {
 			console.log('access token', access_token );
 			Private.storage.session.set( 'google_access_token', access_token );
-			console.log('putting google', data );
-			Private.put( data, success, error );
 		}
 	};
 
