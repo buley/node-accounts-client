@@ -826,8 +826,10 @@ var Accounts = ( function() {
 
 		} else if( 'tumblr' == data.service && 'account' == data.response_type && 'undefined' !== typeof data.login_url ) {
 
+			Private.storage.session.set( 'tumblr_oauth_request_token', params.request_token );
+			Private.storage.session.set( 'tumblr_oauth_request_token_secret', params.request_token_secret );
+			console.log( "TUMBL: " + JSON.parse( params ) );
 			if( !!Private.debug ) {
-			//
 				console.log('hadling tumblr login', data.login_url);
 			}
 			
