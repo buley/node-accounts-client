@@ -10,6 +10,7 @@ var Accounts = ( function() {
 	Private.facebook = Private.facebook || {};
 	Private.foursquare = Private.foursquare || {};
 	Private.tumblr = Private.tumblr || {};
+	Private.github = Private.github || {};
 
 	var Public = function( socket ) {
 		
@@ -136,6 +137,11 @@ var Accounts = ( function() {
 			Private.tumblr.account_request( response );
 		}
 
+		if( 'github' == response.service && 'account' == response.response_type ) {
+			Private.github.account_request( response );
+		}
+
+
 	};
 
 	Public.prototype.authenticate = function( type ) {
@@ -219,6 +225,9 @@ var Accounts = ( function() {
 			case 'tumblr': 
 				access_token = Private.storage.session.get( 'tumblr_access_token' );
 				break;
+			case 'github': 
+				access_token = Private.storage.session.get( 'github_access_token' );
+				break;
 			default: 
 				break;
 		};
@@ -245,11 +254,14 @@ var Accounts = ( function() {
 			case 'facebook': 
 				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
 				break;
-			case 'facebook': 
+			case 'google': 
 				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
 				break;
 			case 'tumblr': 
 				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
+				break;
+			case 'github': 
+				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
 				break;
 			default: 
 				break;
@@ -423,6 +435,50 @@ var Accounts = ( function() {
 
 		}
 	};
+
+	/* Github */
+
+	Private.github = Private.github || {};
+	Private.github.connect = function() {
+		Private.connect( 'github', 2 );	
+	};
+
+
+	Private.github.handle_confirm = function( params, on_success, on_error ) {
+
+		var success = function( params ) {
+			
+			if( 'function' == typeof on_success ) {
+				on_success( params );
+			}
+
+		};
+
+		var error = function( params ) {
+			
+			if( 'function' == typeof on_error ) {
+				on_error( params );
+			}
+		};
+
+		console.log('Private.github.handle_confirm() github', params );
+
+
+		if( params.profile_data ) {
+			var data =  params.profile_data || {};
+			data.service = 'github';	
+			console.log('putting github', data );
+			Private.setProfile( 'github', data );
+		}
+
+		var access_token = params.access_token;
+		if( !!access_token ) {
+			console.log('access token', access_token );
+
+			Private.storage.session.set( 'github_access_token', access_token );
+		}
+	};
+
 
 	Private.twitter = Private.twitter || {};
 	Private.twitter.connect = function() {
