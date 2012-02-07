@@ -324,7 +324,6 @@ var Accounts = ( function() {
 
 		console.log('Private.facebook.handle_confirm()', params );
 
-
 		if( !!params.profile_data ) {
 			var data =  params.profile_data || {};
 			data.service = 'facebook';
@@ -333,9 +332,11 @@ var Accounts = ( function() {
 		}	
 
 		var access_token = params.access_token;
+		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
 			console.log('access token', access_token );
 			Private.storage.session.set( 'facebook_access_token', access_token );
+			Private.storage.session.set( 'facebook_access_token_secret', access_token_secret );
 		}
 	};
 
@@ -411,11 +412,21 @@ var Accounts = ( function() {
 			Private.setProfile( 'tumblr', data );
 		}
 
+		var refresh_token = params.refresh_token;
+		var refresh_token_secret = params.refresh_token_secret;
+		if( !!refresh_token ) {
+			console.log('refresh and secret tokens', refresh_token, refresh_token_secret );
+			Private.storage.session.set( 'tumblr_refresh_token', refresh_token );
+			Private.storage.session.set( 'tumblr_refresh_token_secret', refresh_token_secret );
+
+			//Private.tumblr.connect();
+
+		}
+
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
 			console.log('access and secret tokens', access_token, access_token_secret );
-
 			Private.storage.session.set( 'tumblr_access_token', access_token );
 			Private.storage.session.set( 'tumblr_access_token_secret', access_token_secret );
 
@@ -497,11 +508,13 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'google_code' );
 		}	
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
+		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
 		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
 		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
 			console.log('TUMBLR',tumblr_token,tumblr_verifier);
-			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_verifier': tumblr_verifier } );
+			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_token_secret': tumblr_token_secret, 'oauth_verifier': tumblr_verifier } );
 			Private.storage.session.delete( 'tumblr_oauth_request_token' );
+			Private.storage.session.delete( 'tumblr_oauth_request_token_secret' );
 			Private.storage.session.delete( 'tumblr_oauth_request_verifier' );
 		}
 	};
@@ -624,7 +637,6 @@ var Accounts = ( function() {
 		} else if( 'facebook' == data.service && 'account' == data.response_type && 'unauthorized' == data.account_status ) {
 
 			console.log('error confirming account', data );
-
 			Private.state.replaceCurrent( '/', 'home' );
 
 		}
