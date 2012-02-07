@@ -497,7 +497,7 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'google_code' );
 		}	
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
-		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );:w
+		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
 		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
 		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
 			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_token_secret': tumblr_token_secret, 'oauth_verifier': tumblr_verifier } );
