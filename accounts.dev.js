@@ -412,17 +412,6 @@ var Accounts = ( function() {
 			Private.setProfile( 'tumblr', data );
 		}
 
-		var refresh_token = params.refresh_token;
-		var refresh_token_secret = params.refresh_token_secret;
-		if( !!refresh_token ) {
-			console.log('refresh and secret tokens', refresh_token, refresh_token_secret );
-			Private.storage.session.set( 'tumblr_refresh_token', refresh_token );
-			Private.storage.session.set( 'tumblr_refresh_token_secret', refresh_token_secret );
-
-			//Private.tumblr.connect();
-
-		}
-
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
@@ -508,10 +497,9 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'google_code' );
 		}	
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
-		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
+		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );:w
 		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
 		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
-			console.log('TUMBLR',tumblr_token,tumblr_verifier);
 			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_token_secret': tumblr_token_secret, 'oauth_verifier': tumblr_verifier } );
 			Private.storage.session.delete( 'tumblr_oauth_request_token' );
 			Private.storage.session.delete( 'tumblr_oauth_request_token_secret' );
@@ -793,7 +781,7 @@ var Accounts = ( function() {
 		if( params.profile_data ) {
 			var data = params.profile_data || {};
 			data.service = 'google';
-			cponsole.log('putting google',data);
+			console.log('putting google',data);
 			Private.setProfile( 'google', data );
 		}
 
