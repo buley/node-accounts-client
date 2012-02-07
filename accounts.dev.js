@@ -30,7 +30,7 @@ var Accounts = ( function() {
 			Public.prototype.request( response );
 		} );
 
-		//Private.detect_login();
+		Private.detect_login();
 
 	};
 
