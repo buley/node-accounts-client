@@ -828,7 +828,7 @@ var Accounts = ( function() {
 
 			Private.storage.session.set( 'tumblr_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'tumblr_oauth_request_token_secret', data.request_token_secret );
-			console.log( "TUMBL: " + JSON.parse( data ) );
+			console.log( "TUMBL: " + JSON.stringify( data ) );
 			if( !!Private.debug ) {
 				console.log('hadling tumblr login', data.login_url);
 			}
