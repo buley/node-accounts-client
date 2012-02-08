@@ -656,6 +656,11 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.state.replaceCurrent( '/', 'home' );
 		 
+			} else if( 'yahoo' === url_vars.service ) {
+				Private.storage.session.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
+				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.state.replaceCurrent( '/', 'home' );
+		 		
 			} else {
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
@@ -668,7 +673,18 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 				Private.facebook.account_request( url_vars );
 			}	
 		}
+
+		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
+			Private.storage.session.set( 'github_code', url_vars.code );
+			Private.state.replaceCurrent( '/', 'home' );
+		}	
 		
+		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
+			Private.storage.session.set( 'foursquare_code', url_vars.code );
+			Private.state.replaceCurrent( '/', 'home' );
+		}
+
+
 		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
 			Private.storage.session.set( 'foursquare_code', url_vars.code );
 			Private.state.replaceCurrent( '/', 'home' );
