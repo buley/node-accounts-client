@@ -580,12 +580,14 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 	Private.confirm = function() {
 
 		var url_vars = Private.utilities.get_url_vars();
+		
 		var facebook_code = Private.storage.session.get( 'facebook_code' );
 		if( 'undefined' !== typeof facebook_code && null !== facebook_code ) {
 			console.log('FACEBOOK',facebook_code);
 			Private.do_confirm( 'facebook', { 'code': facebook_code } );
 			Private.storage.session.delete( 'facebook_code' );
 		}	
+		
 		var twitter_token = Private.storage.session.get( 'twitter_oauth_request_token' );
 		var twitter_verifier = Private.storage.session.get( 'twitter_oauth_request_verifier' );
 		if( 'undefined' !== typeof twitter_token && null !== twitter_token && 'undefined' !== typeof twitter_verifier && null !== twitter_verifier ) {
@@ -594,18 +596,28 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			Private.storage.session.delete( 'twitter_oauth_request_token' );
 			Private.storage.session.delete( 'twitter_oauth_request_verifier' );
 		}
+
 		var foursquare_code = Private.storage.session.get( 'foursquare_code' );
 		if( 'undefined' !== typeof foursquare_code && null !== foursquare_code  ) {
 			console.log('FOURSQUARE',foursquare_code);
 			Private.do_confirm( 'foursquare', { 'code': foursquare_code } );
 			Private.storage.session.delete( 'foursquare_code' );
-		}	
+		}
+
 		var google_code = Private.storage.session.get( 'google_code' );
 		if( 'undefined' !== typeof google_code && null !== google_code ) {
 			Private.do_confirm( 'google', { 'code': google_code } );
 			console.log('GOOGLE',google_code);
 			Private.storage.session.delete( 'google_code' );
-		}	
+		}
+
+		var github_code = Private.storage.session.get( 'github_code' );
+		if( 'undefined' !== typeof github_code && null !== github_code  ) {
+			console.log('GITHUB',github_code);
+			Private.do_confirm( 'github', { 'code': github_code } );
+			Private.storage.session.delete( 'github_code' );
+		}
+
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
 		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
 		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
@@ -615,6 +627,17 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			Private.storage.session.delete( 'tumblr_oauth_request_token_secret' );
 			Private.storage.session.delete( 'tumblr_oauth_request_verifier' );
 		}
+
+		var yahoo_token = Private.storage.session.get( 'yahoo_oauth_request_token' );
+		var yahoo_token_secret = Private.storage.session.get( 'yahoo_oauth_request_token_secret' );
+		var yahoo_verifier = Private.storage.session.get( 'yahoo_oauth_request_verifier' );
+		if( 'undefined' !== typeof yahoo_token && null !== yahoo_token && 'undefined' !== typeof yahoo_verifier && null !== yahoo_verifier ) {
+			Private.do_confirm( 'yahoo', { 'oauth_token': yahoo_token, 'oauth_token_secret': yahoo_token_secret, 'oauth_verifier': yahoo_verifier } );
+			Private.storage.session.delete( 'yahoo_oauth_request_token' );
+			Private.storage.session.delete( 'yahoo_oauth_request_token_secret' );
+			Private.storage.session.delete( 'yahoo_oauth_request_verifier' );
+		}
+
 	};
 
 
