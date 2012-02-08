@@ -906,6 +906,79 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		Private.connect( 'google', 2 );	
 	};
 
+	/* Yahoo */
+
+	Private.yahoo.account_request = function( data ) {
+
+		if( 'undefined' !== typeof data.logout_url ) {
+			if( !!Private.debug ) {
+				console.log( 'logged out of ' + data.service );
+			}
+			//toggle status indicator
+			//delete session storage
+			Private.storage.session.delete( 'yahoo_access_token' );
+			Private.storage.session.delete( 'yahoo_access_token_secret' );
+
+			Private.update();
+			Private.state.replaceCurrent( '/', 'home' );
+
+		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+
+			Private.storage.session.set( 'yahoo_oauth_request_token', data.request_token );
+			Private.storage.session.set( 'yahoo_oauth_request_token_secret', data.request_token_secret );
+			console.log( "TUMBL: " + JSON.stringify( data ) );
+			if( !!Private.debug ) {
+				console.log('hadling yahoo login', data.login_url);
+			}
+			
+			window.location = data.login_url;
+
+		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+
+			if( 'connected' === data.connect_status ) {
+			
+				if( !!Private.debug ) {
+					console.log('Confirmed Yahoo');	
+				}
+
+			} else {
+
+				Private.storage.session.delete( 'yahoo_access_token' );
+				Private.storage.session.delete( 'yahoo_access_token_secret' );
+				Private.update();	
+				
+				if( !!Private.debug ) {
+					console.log('Failed to confirm Yahoo');
+				}
+
+			}
+
+		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+
+			var on_success = function() {
+				Private.update();	
+				//Private.yahoo.connect();
+			}
+			
+			var on_error = function() {
+				Private.update();
+			}
+
+			Private.yahoo.handle_confirm( data, on_success, on_error );	
+
+		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+
+			if( !!Private.debug ) {
+				console.log('error confirming account', data );
+			}
+
+			Private.state.replaceCurrent( '/', 'home' );
+
+		}
+
+	}
+
+
 	/* Tumblr */
 
 	Private.tumblr.account_request = function( data ) {
