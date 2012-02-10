@@ -123,7 +123,7 @@ var Accounts = ( function() {
 			}
 			return results;
 		}
-		return ! Public.prototype.disabled( service );
+		return ! Public.prototype.enabled( service );
 	};
 
 	Public.prototype.disable = function( service ) {
