@@ -4,6 +4,7 @@ var Accounts = ( function() {
 	Private.sockets = [];
 	Private.socket = {};
 	Private.connected = false;
+	Private.prefix = '_acc_';
 
 	Private.allServices = [ 'facebook', 'foursquare', 'twitter', 'tumblr', 'github', 'google', 'yahoo' ];
 	Private.activeServices = [];
@@ -81,7 +82,7 @@ var Accounts = ( function() {
 
 	};
 
-	Public.enable = function( service ) {
+	Public.prototype.enable = function( service ) {
 		if( 'undefined' !== typeof service || null === service ) {
 			return Private.setActiveServices( Private.allServices );	
 		} else {
@@ -89,7 +90,7 @@ var Accounts = ( function() {
 		}
 	};
 
-	Public.enabled = function( service ) {
+	Public.prototype.enabled = function( service ) {
 		if( 'undefined' === typeof service || null === service ) {
 			return Private.getActiveServices();
 		}
@@ -103,7 +104,7 @@ var Accounts = ( function() {
 		return true;
 	};
 
-	Public.disabled = function( service ) {
+	Public.prototype.disabled = function( service ) {
 		if( 'undefined' === typeof service || null === service ) {
 			var services = Private.getActiveServices();
 			var all_services = Private.getActiveServices();
@@ -125,7 +126,7 @@ var Accounts = ( function() {
 		return ! Public.disabled( service );
 	};
 
-	Public.disable = function( service ) {
+	Public.prototype.disable = function( service ) {
 		if( 'undefined' !== typeof service || null === service ) {
 			return Private.setActiveServices( [] );	
 		} else {
@@ -390,17 +391,17 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
 			return false;
 		}
-		Private.storage.session.set( type + '_access_token_secret', secret );
+		Private.storage.session.set( Private.prefix + type + '_access_token_secret', secret );
 	};
 
 	Private.getProfile = function ( type ) {
-		if( Public.disabled( type ) ) {
+		if( !Public.enabled( type ) ) {
 			return false;
 		}
 		if( 'undefined' === typeof type || null === type ) {
 			return Private.getUnifiedProfile();
 		}
-		return Private.storage.local.get( type + '_profile' );
+		return Private.storage.local.get( Private.prefix + type + '_profile' );
 	};
 	
 	Private.setProfile = function ( type, data ) {
@@ -410,7 +411,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
 			return false;
 		}
-		return Private.storage.local.set( type + '_profile', data );
+		return Private.storage.local.set( Private.prefix + type + '_profile', data );
 	};
 
 	Private.getUnifiedProfile = function ( ) {
@@ -1397,15 +1398,15 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		if( 'string' !== typeof set_value ) {
 			set_value = JSON.stringify( set_value );
 		}
-		return Private.store.setItem( '_acc_' + set_key, set_value );
+		return Private.store.setItem( Private.prefix + set_key, set_value );
 	};
 		
 	Private.storage.local.delete = function( key ) {
-		return Private.store.removeItem( '_acc_' + key );
+		return Private.store.removeItem( Private.prefix + key );
 	};
 		
 	Private.storage.local.get = function( get_key ) {
-		return JSON.parse( Private.store.getItem( '_acc_' + get_key ) );
+		return JSON.parse( Private.store.getItem( Private.prefix + get_key ) );
 	};
 
 	Private.storage.local.set_batch = function( dictionary ) {
@@ -1429,15 +1430,15 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 	Private.session = sessionStorage;
 
 	Private.storage.session.set = function( set_key, set_value ) {
-		return Private.session.setItem( '_acc_' + set_key, set_value );
+		return Private.session.setItem( Private.prefix + set_key, set_value );
 	};
 		
 	Private.storage.session.delete = function( key ) {
-		return Private.session.removeItem( '_acc_' + key );
+		return Private.session.removeItem( Private.prefix + key );
 	};
 		
 	Private.storage.session.get = function( get_key ) {
-		return Private.session.getItem( '_acc_' + get_key );
+		return Private.session.getItem( Private.prefix + get_key );
 	};
 
 	Private.storage.session.set_batch = function( dictionary ) {
