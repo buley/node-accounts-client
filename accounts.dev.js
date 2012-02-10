@@ -12,38 +12,6 @@ var Accounts = ( function() {
 	for( var z = 0; z < zlen; z += 1 ) {
 		Private[ Private.allServices[ z ] ] = {};
 	}
-
-	Public.enable = function( service ) {
-		if( 'undefined' !== typeof service || null === service ) {
-			return Private.setActiveServices( Private.allServices );	
-		} else {
-			return Private.addActiveService( service );
-		}
-	};
-
-	Public.enabled = function( service ) {
-		var services = Private.activeServices;
-		var x = 0; len = services.length;
-		for( x = 0; x < len; x += 1 ) {
-			if( service === services[ x ] ) {
-				return false;
-			}
-		}
-		return true;
-	};
-
-	Public.disabled = function( service ) {
-		return ! Public.disabled( service );
-	};
-
-	Public.disable = function( service ) {
-		if( 'undefined' !== typeof service || null === service ) {
-			return Private.setActiveServices( [] );	
-		} else {
-			return Private.removeActiveService( service );
-		}
-	};
-
 	Private.getActiveServices = function() {
 		return Private.activeServices.slice( 0 );
 	};
@@ -112,6 +80,38 @@ var Accounts = ( function() {
 		Private.detect_login();
 
 	};
+
+	Public.enable = function( service ) {
+		if( 'undefined' !== typeof service || null === service ) {
+			return Private.setActiveServices( Private.allServices );	
+		} else {
+			return Private.addActiveService( service );
+		}
+	};
+
+	Public.enabled = function( service ) {
+		var services = Private.activeServices;
+		var x = 0; len = services.length;
+		for( x = 0; x < len; x += 1 ) {
+			if( service === services[ x ] ) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	Public.disabled = function( service ) {
+		return ! Public.disabled( service );
+	};
+
+	Public.disable = function( service ) {
+		if( 'undefined' !== typeof service || null === service ) {
+			return Private.setActiveServices( [] );	
+		} else {
+			return Private.removeActiveService( service );
+		}
+	};
+
 
 	Public.prototype.connected = function() {
 		return ( Private.connected ) ? true : false;
