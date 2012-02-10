@@ -58,7 +58,7 @@ var Accounts = ( function() {
 		if( 'undefined' !== typeof services ) {
 			Private.setActiveServices( services );
 		} else {
-			Public.enable();
+			Public.prototype.enable();
 		}
 
 		if( 'undefined' !== socket && null !== socket ) {
