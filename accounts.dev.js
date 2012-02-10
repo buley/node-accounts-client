@@ -90,6 +90,9 @@ var Accounts = ( function() {
 	};
 
 	Public.enabled = function( service ) {
+		if( 'undefined' === typeof service || null === service ) {
+			return Private.getActiveServices();
+		}
 		var services = Private.activeServices;
 		var x = 0; len = services.length;
 		for( x = 0; x < len; x += 1 ) {
@@ -101,6 +104,24 @@ var Accounts = ( function() {
 	};
 
 	Public.disabled = function( service ) {
+		if( 'undefined' === typeof service || null === service ) {
+			var services = Private.getActiveServices();
+			var all_services = Private.getActiveServices();
+			var x = 0, z = 0, len = services.length, a_len = all_services.length;
+			var results = [];
+			for( x = 0; x < a_len; x += 1 ) {
+				var disabled = true;
+				for( y = 0; y < len; y += 1 ) {
+					if( services[ z ] === all_services[ x ] ) {
+						disabled = false;
+					}
+				}
+				if( true === disabled ) {
+					results.push( all_services[ x ] );
+				}
+			}
+			return results;
+		}
 		return ! Public.disabled( service );
 	};
 
