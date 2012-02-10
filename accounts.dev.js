@@ -55,7 +55,7 @@ var Accounts = ( function() {
 
 	var Public = function( socket, services ) {
 		
-		if( 'undefined' !== typeof services ) {
+		if( 'undefined' !== typeof services && null !== services ) {
 			Private.setActiveServices( services );
 		} else {
 			Public.prototype.enable();
@@ -83,7 +83,7 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.enable = function( service ) {
-		if( 'undefined' !== typeof service || null === service ) {
+		if( 'undefined' === typeof service || null === service ) {
 			return Private.setActiveServices( Private.allServices );	
 		} else {
 			return Private.addActiveService( service );
@@ -417,7 +417,7 @@ var Accounts = ( function() {
 	Private.getUnifiedProfile = function ( ) {
 		var services = Private.getActiveServices();
 		var x = 0; xlen = services.length, service;
-		var profiles;
+		var profiles = {};
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
 			profiles[ service ] = Private.getProfile( service );
