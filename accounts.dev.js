@@ -123,7 +123,7 @@ var Accounts = ( function() {
 			}
 			return results;
 		}
-		return ! Public.disabled( service );
+		return ! Public.prototype.disabled( service );
 	};
 
 	Public.prototype.disable = function( service ) {
@@ -187,7 +187,7 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.login = function( service ) {
-		if( Public.enabled( service ) ) {
+		if( Public.prototype.enabled( service ) ) {
 			return Private.do_login( service );
 		} else {
 			return false;
@@ -195,7 +195,7 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.logout = function( service ) {
-		if( Public.enabled( service ) ) {
+		if( Public.prototype.enabled( service ) ) {
 			return Private.do_logout( service );
 		} else {
 			return false;
@@ -286,7 +286,7 @@ var Accounts = ( function() {
 
 
 	Private.connect = function( service, oauth_type ) {
-		if( Public.disabled( service ) ) {
+		if( Public.prototype.disabled( service ) ) {
 			return false;
 		}
 		var request = { 'command': 'connect' };
@@ -309,7 +309,7 @@ var Accounts = ( function() {
 	};	
 
 	Private.getAccessToken = function( type ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return null;
 		}
 		var access_token = null;
@@ -342,7 +342,7 @@ var Accounts = ( function() {
 	};
 
 	Private.setAccessToken = function( type, token ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		if( 'undefined' === typeof type || 'undefined' === typeof token || null === type || null === token ) {
@@ -352,7 +352,7 @@ var Accounts = ( function() {
 	};
 
 	Private.getAccessTokenSecret = function( type ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		var access_token_secret = null;
@@ -385,7 +385,7 @@ var Accounts = ( function() {
 	};
 
 	Private.setAccessTokenSecret = function( type, secret ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
@@ -395,7 +395,7 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfile = function ( type ) {
-		if( !Public.enabled( type ) ) {
+		if( !Public.prototype.enabled( type ) ) {
 			return false;
 		}
 		if( 'undefined' === typeof type || null === type ) {
@@ -405,7 +405,7 @@ var Accounts = ( function() {
 	};
 	
 	Private.setProfile = function ( type, data ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
@@ -426,7 +426,7 @@ var Accounts = ( function() {
 	};
 
 	Private.do_logout = function ( type ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		var obj =  { 'request_type': 'account', 'command': 'logout', 'service': type };
@@ -435,14 +435,14 @@ var Accounts = ( function() {
 	};
 
 	Private.do_login = function ( type ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		Private.socket.emit( 'account', { 'request_type': 'account', 'command': 'login', 'service': type } );
 	};
 
 	Private.do_confirm = function ( type, params ) {
-		if( Public.disabled( type ) ) {
+		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
 		params.request_type = 'account';
