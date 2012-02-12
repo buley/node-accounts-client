@@ -567,7 +567,7 @@ var Accounts = ( function() {
 				case 'twitter': 
 					break;
 				case 'yahoo':
-					birthdate.year = profile.name.birthYear;
+					birthdate.year = profile.birthYear;
 					break;
 				default:
 					break;
