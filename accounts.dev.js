@@ -542,7 +542,7 @@ var Accounts = ( function() {
 		return profiles;
 	};
 
-	Private.getProfileBirthdate = function () {
+	Private.getProfileBirthdates = function () {
 		var services = Private.getUnifiedProfiles();
 		var attr, profile, birthdate, profiles = {};
 		for( service in services ) {
