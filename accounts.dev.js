@@ -464,10 +464,10 @@ var Accounts = ( function() {
 
 	Private.getProfileDisplayNames = function () {
 		var services = Private.getUnifiedProfiles();
-		var attr, profile, names = { display: '', first: '', last: '' }, profiles = {};
+		var attr, profile, names, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
-			names = null;
+			names = { display: '', first: '', last: '' };
 			switch( service ) {
 				case 'facebook':
 					names.display = profile.name;
