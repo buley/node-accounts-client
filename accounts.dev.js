@@ -467,7 +467,7 @@ var Accounts = ( function() {
 		var attr, profile, names, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
-			names = { display: '', first: '', last: '' };
+			names = { display: null, first: null, last: null };
 			switch( service ) {
 				case 'facebook':
 					names.display = profile.name;
@@ -507,10 +507,120 @@ var Accounts = ( function() {
 	};
 
 
+	Private.getProfileGenders = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, gender, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			gender = null;
+			switch( service ) {
+				case 'facebook':
+					gender = profile.gender;
+					break;
+				case 'foursquare':
+					gender = profile.gender;
+					break;
+				case 'github':
+					break;
+				case 'google':
+					gender = profile.gender;
+					break;
+				case 'linkedin':
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					break;
+				case 'yahoo':
+					gender = profile.gender;
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = gender;
+		};
+		return profiles;
+	};
+
+	Private.getProfileBirthdate = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, birthdate, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			birthdate = { day: null, month: null, year: null };
+			switch( service ) {
+				case 'facebook':
+					birthdate.day = new Date( profile.birthdate ).getDate();
+					birthdate.month = new Date( profile.birthdate ).getMonth() + 1;
+					birthdate.year = new Date( profile.birthdate ).getFullYear();
+					break;
+				case 'foursquare':
+					break;
+				case 'github':
+					break;
+				case 'google':
+					break;
+				case 'linkedin':
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					break;
+				case 'yahoo':
+					birthdate.year = profile.name.birthYear;
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = birthdate;
+		};
+		return profiles;
+	};
+
+	Private.getProfileImages = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, image, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			image = null;
+			switch( service ) {
+				case 'facebook':
+					break;
+				case 'foursquare':
+					image = profile.photo;
+					break;
+				case 'github':
+					image = profile.avatar_url;
+					break;
+				case 'google':
+					image = profile.image;
+					break;
+				case 'linkedin':
+					image = profile.pictureUrl;
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					image = profile.profile_image_url;
+					break;
+				case 'yahoo':
+					image = profile.image.imageUrl;
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = image;
+		};
+		return profiles;
+	};
+
 	Private.getUnifiedProfile = function ( ) {
 		return {
 			'ids': Private.getProfileIds()
 			, 'display_names': Private.getProfileDisplayNames()
+			, 'birthdate': Private.getProfileDisplayBirthdates()
+			, 'gender': Private.getProfileDisplayGenders()
+			, 'image': Private.getProfileDisplayImages()
 		};
 	};
 
