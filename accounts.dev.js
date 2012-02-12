@@ -697,7 +697,7 @@ var Accounts = ( function() {
 					email = profile.email;
 					break;
 				case 'foursquare':
-					email = contact.email;
+					email = profile.contact.email;
 					break;
 				case 'github':
 					email = profile.email;
