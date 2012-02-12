@@ -425,7 +425,7 @@ var Accounts = ( function() {
 
 	Private.getProfileIds = function () {
 		var services = Private.getUnifiedProfiles();
-		var attr, profile, id, profiles;
+		var attr, profile, id, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			last_updated = null;
@@ -464,7 +464,7 @@ var Accounts = ( function() {
 
 	Private.getProfileDisplayNames = function () {
 		var services = Private.getUnifiedProfiles();
-		var attr, profile, id, profiles;
+		var attr, profile, id, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			last_updated = null;
