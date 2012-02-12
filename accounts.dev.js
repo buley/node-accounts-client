@@ -593,7 +593,7 @@ var Accounts = ( function() {
 					image = profile.avatar_url;
 					break;
 				case 'google':
-					image = profile.image;
+					image = profile.image.url;
 					break;
 				case 'linkedin':
 					image = profile.pictureUrl;
@@ -614,13 +614,234 @@ var Accounts = ( function() {
 		return profiles;
 	};
 
+	Private.getProfilePersonalURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], personal_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			personal_url = null;
+			switch( service ) {
+				case 'facebook':
+					personal_url = profile.website;
+					break;
+				case 'foursquare':
+					break;
+				case 'github':
+					personal_url = profile.blog;
+					break;
+				case 'google':
+					break;
+				case 'linkedin':
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					personal_url = profile.url;
+					break;
+				case 'yahoo':
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = personal_url;
+		};
+		return profiles;
+	};
+
+
+
+	Private.getProfileURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], profile_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			profile_url = null;
+			switch( service ) {
+				case 'facebook':
+					profile_url = profile.link;
+					break;
+				case 'foursquare':
+					profile_url = profile.canonicalUrl;
+					break;
+				case 'github':
+					profile_url = profile.html_url;
+					break;
+				case 'google':
+					break;
+				case 'linkedin':
+					profile_url = profile.publicProfileUrl;
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					profile_url = "http://twitter.com/#!/" + profile.screen_name;
+					break;
+				case 'yahoo':
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = profile_url;
+		};
+		return profiles;
+	};
+
+	Private.getProfileEmails = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, email, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			email = null;
+			switch( service ) {
+				case 'facebook':
+					email = profile.email;
+					break;
+				case 'foursquare':
+					email = contact.email;
+					break;
+				case 'github':
+					email = profile.email;
+					break;
+				case 'google':
+					break;
+				case 'linkedin':
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					break;
+				case 'yahoo':
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = email;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileUsernames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, username, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			username = null;
+			switch( service ) {
+				case 'facebook':
+					username = profile.username;
+					break;
+				case 'foursquare':
+					break;
+				case 'github':
+					username = profile.login;
+					break;
+				case 'google':
+					break;
+				case 'linkedin':
+					break;
+				case 'tumblr':
+					username = profile.name;
+					break;
+				case 'twitter': 
+					username = profile.screen_name;
+					break;
+				case 'yahoo':
+					username = profile.nickname;
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = username;
+		};
+		return profiles;
+	};
+
+	Private.getProfileDescriptions = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, description, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			description = null;
+			switch( service ) {
+				case 'facebook':
+					break;
+				case 'foursquare':
+					break;
+				case 'github':
+					break;
+				case 'google':
+					description = profile.bio;
+					break;
+				case 'linkedin':
+					description = profile.headline;
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					description = profile.description;
+					break;
+				case 'yahoo':
+					description = profile.nickname;
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = description;
+		};
+		return profiles;
+	};
+
+	Private.getProfileLocations = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, location, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			location = null;
+			switch( service ) {
+				case 'facebook':
+					location = profile.location.name;
+					break;
+				case 'foursquare':
+					location = profile.homeCity;
+					break;
+				case 'github':
+					location = profile.location;
+					break;
+				case 'google':
+					location = profile.bio;
+					break;
+				case 'linkedin':
+					location = profile.location.name;
+					break;
+				case 'tumblr':
+					break;
+				case 'twitter': 
+					location = profile.location;
+					break;
+				case 'yahoo':
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = location;
+		};
+		return profiles;
+	};
+
 	Private.getUnifiedProfile = function ( ) {
 		return {
 			'ids': Private.getProfileIds()
+			, 'username': Private.getProfileUsernames();
+			, 'email': Private.getProfileEmails()
 			, 'display_names': Private.getProfileDisplayNames()
 			, 'birthdate': Private.getProfileBirthdates()
 			, 'gender': Private.getProfileGenders()
 			, 'image': Private.getProfileImages()
+			, 'location': Private.getProfileLocations()
+			, 'description': Private.getProfileDescriptions()
+			, 'profiles': Private.getProfileURLs()
+			, 'url': Private.getProfilePersonalURLs()
 		};
 	};
 
