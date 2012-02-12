@@ -256,6 +256,11 @@ var Accounts = ( function() {
 			Private.yahoo.account_request( response );
 		}
 
+		if( 'linkedin' === response.service && 'account' === response.response_type ) {
+			Private.linkedin.account_request( response );
+		}
+
+
 	};
 
 	Private.debug = false;
@@ -1398,7 +1403,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 
 			Private.storage.session.set( 'linkedin_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'linkedin_oauth_request_token_secret', data.request_token_secret );
-			console.log( "TUMBL: " + JSON.stringify( data ) );
+			console.log( "LNKD: " + JSON.stringify( data ) );
 			if( !!Private.debug ) {
 				console.log('hadling linkedin login', data.login_url);
 			}
