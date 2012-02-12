@@ -619,8 +619,8 @@ var Accounts = ( function() {
 			'ids': Private.getProfileIds()
 			, 'display_names': Private.getProfileDisplayNames()
 			, 'birthdate': Private.getProfileBirthdates()
-			, 'gender': Private.getProfileDisplayGenders()
-			, 'image': Private.getProfileDisplayImages()
+			, 'gender': Private.getProfileGenders()
+			, 'image': Private.getProfileImages()
 		};
 	};
 
