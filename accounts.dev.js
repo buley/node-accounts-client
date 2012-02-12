@@ -6,7 +6,7 @@ var Accounts = ( function() {
 	Private.connected = false;
 	Private.prefix = '_acc_';
 
-	Private.allServices = [ 'facebook', 'foursquare', 'twitter', 'tumblr', 'github', 'google', 'yahoo' ];
+	Private.allServices = [ 'facebook', 'foursquare', 'twitter', 'tumblr', 'github', 'google', 'yahoo', 'linkedin' ];
 	Private.activeServices = [];
 
 	var z = 0, zlen = Private.allServices.length;
@@ -94,14 +94,15 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof service || null === service ) {
 			return Private.getActiveServices();
 		}
+		//Todo: use indexOf for Mozilla (native C is faster)
 		var services = Private.activeServices;
 		var x = 0; len = services.length;
 		for( x = 0; x < len; x += 1 ) {
 			if( service === services[ x ] ) {
-				return false;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	};
 
 	Public.prototype.disabled = function( service ) {
@@ -187,7 +188,9 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.login = function( service ) {
+		console.log( 'Attempting to log into ' + service );
 		if( Public.prototype.enabled( service ) ) {
+			console.log( 'Logging into ' + service );
 			return Private.do_login( service );
 		} else {
 			return false;
@@ -252,6 +255,11 @@ var Accounts = ( function() {
 		if( 'yahoo' === response.service && 'account' === response.response_type ) {
 			Private.yahoo.account_request( response );
 		}
+
+		if( 'linkedin' === response.service && 'account' === response.response_type ) {
+			Private.linkedin.account_request( response );
+		}
+
 
 	};
 
@@ -572,6 +580,50 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 
 	}
 };
+	/* Linkedin */
+
+	Private.linkedin = Private.linkedin || {};
+	Private.linkedin.connect = function() {
+		Private.connect( 'linkedin', 1 );	
+	};
+
+	Private.linkedin.handle_confirm = function( params, on_success, on_error ) {
+		var success = function( params ) {
+			
+			if( 'function' === typeof on_success ) {
+				on_success( params );
+			}
+
+		};
+
+		var error = function( params ) {		
+			if( 'function' === typeof on_error ) {
+				on_error( params );
+			}
+		};
+
+		console.log('Private.linkedin.handle_confirm()', params );
+		if( !!params.profile_data ) {
+			var data =  params.profile_data || {};
+			data.service = 'linkedin';
+
+			console.log('putting linkedin', data );
+			Private.setProfile( 'linkedin', data );
+		}
+
+		var access_token = params.access_token;
+		var access_token_secret = params.access_token_secret;
+		if( !!access_token ) {
+			console.log('access and secret tokens', access_token, access_token_secret );
+			Private.storage.session.set( 'linkedin_access_token', access_token );
+			Private.storage.session.set( 'linkedin_access_token_secret', access_token_secret );
+
+			//Private.linkedin.connect();
+
+		}
+	};
+
+
 
 	/* Tumblr */
 
@@ -764,6 +816,18 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			Private.storage.session.delete( 'yahoo_oauth_request_verifier' );
 		}
 
+		var linkedin_token = Private.storage.session.get( 'linkedin_oauth_request_token' );
+		var linkedin_token_secret = Private.storage.session.get( 'linkedin_oauth_request_token_secret' );
+		var linkedin_verifier = Private.storage.session.get( 'linkedin_oauth_request_verifier' );
+		if( 'undefined' !== typeof linkedin_token && null !== linkedin_token && 'undefined' !== typeof linkedin_verifier && null !== linkedin_verifier ) {
+			Private.do_confirm( 'linkedin', { 'oauth_token': linkedin_token, 'oauth_token_secret': linkedin_token_secret, 'oauth_verifier': linkedin_verifier } );
+			Private.storage.session.delete( 'linkedin_oauth_request_token' );
+			Private.storage.session.delete( 'linkedin_oauth_request_token_secret' );
+			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
+		}
+
+
+
 	};
 
 
@@ -787,7 +851,12 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
-			} else {
+			} else if( 'linkedin' === url_vars.service ) {
+				Private.storage.session.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
+				Private.storage.session.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.state.replaceCurrent( '/', 'home' );
+		 		
+			}else {
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.state.replaceCurrent( '/', 'home' );
@@ -830,6 +899,10 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			, 'twitter': 'twitter_access_token'
 			, 'google': 'google_access_token'
 			, 'foursquare': 'foursquare_access_token'
+			, 'github': 'github_access_token'
+			, 'yahoo': 'yahoo_access_token'
+			, 'tumblr': 'tumblr_access_token'
+			, 'linkedin': 'linkedin_access_token'
 		};
 
 		var statuses = {};
@@ -1353,6 +1426,79 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		}
 
 	}
+
+	/* Linkedin */
+
+	Private.linkedin.account_request = function( data ) {
+
+		if( 'undefined' !== typeof data.logout_url ) {
+			if( !!Private.debug ) {
+				console.log( 'logged out of ' + data.service );
+			}
+			//toggle status indicator
+			//delete session storage
+			Private.storage.session.delete( 'linkedin_access_token' );
+			Private.storage.session.delete( 'linkedin_access_token_secret' );
+
+			Private.update();
+			Private.state.replaceCurrent( '/', 'home' );
+
+		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+
+			Private.storage.session.set( 'linkedin_oauth_request_token', data.request_token );
+			Private.storage.session.set( 'linkedin_oauth_request_token_secret', data.request_token_secret );
+			console.log( "LNKD: " + JSON.stringify( data ) );
+			if( !!Private.debug ) {
+				console.log('hadling linkedin login', data.login_url);
+			}
+			
+			window.location = data.login_url;
+
+		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+
+			if( 'connected' === data.connect_status ) {
+			
+				if( !!Private.debug ) {
+					console.log('Confirmed Linkedin');	
+				}
+
+			} else {
+
+				Private.storage.session.delete( 'linkedin_access_token' );
+				Private.storage.session.delete( 'linkedin_access_token_secret' );
+				Private.update();	
+				
+				if( !!Private.debug ) {
+					console.log('Failed to confirm Linkedin');
+				}
+
+			}
+
+		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+
+			var on_success = function() {
+				Private.update();	
+				//Private.linkedin.connect();
+			}
+			
+			var on_error = function() {
+				Private.update();
+			}
+
+			Private.linkedin.handle_confirm( data, on_success, on_error );	
+
+		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+
+			if( !!Private.debug ) {
+				console.log('error confirming account', data );
+			}
+
+			Private.state.replaceCurrent( '/', 'home' );
+
+		}
+
+	}
+
 
 
 	/* History */
