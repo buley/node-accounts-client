@@ -187,7 +187,9 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.login = function( service ) {
+		console.log( 'Attempting to log into ' + service );
 		if( Public.prototype.enabled( service ) ) {
+			console.log( 'Logging into ' + service );
 			return Private.do_login( service );
 		} else {
 			return false;
