@@ -422,7 +422,8 @@ var Accounts = ( function() {
 		return Private.storage.local.set( Private.prefix + type + '_profile', data );
 	};
 
-	Private.getProfileIds = function ( ) {
+
+	Private.getProfileIds = function () {
 		var services = Private.getUnifiedProfiles();
 		var attr, profile, id, profiles;
 		for( service in services ) {
@@ -461,8 +462,51 @@ var Accounts = ( function() {
 		return profiles;
 	};
 
-	Private.getUnifiedProfile = function ( ) {
+	Private.getProfileDisplayNames = function () {
 		var services = Private.getUnifiedProfiles();
+		var attr, profile, id, profiles;
+		for( service in services ) {
+			profile = services[ service ];
+			last_updated = null;
+			switch( service ) {
+				case 'facebook':
+					id = parseInt( profile.id, 10 );
+					break;
+				case 'foursquare':
+					id = parseInt( profile.id, 10 );
+					break;
+				case 'github':
+					id = profile.id;
+					break;
+				case 'google':
+					id = parseInt( profile.id, 10 );
+					break;
+				case 'linkedin':
+					id = profile.id;
+					break;
+				case 'tumblr':
+					id = null;
+					break;
+				case 'twitter': 
+					id = parseIn( profile.id_str, 10 );
+					break;
+				case 'yahoo':
+					id = profile.guid;
+					break;
+				default:
+					break;
+			};
+			profiles[ service ] = id;
+		};
+		return profiles;
+	};
+
+
+	Private.getUnifiedProfile = function ( ) {
+		return {
+			'ids': Private.getProfileIds()
+			, 'display_names': Private.getProfileDisplayNames()
+		};
 	};
 
 
