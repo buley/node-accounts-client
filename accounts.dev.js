@@ -618,7 +618,7 @@ var Accounts = ( function() {
 		return {
 			'ids': Private.getProfileIds()
 			, 'display_names': Private.getProfileDisplayNames()
-			, 'birthdate': Private.getProfileDisplayBirthdates()
+			, 'birthdate': Private.getProfileBirthdates()
 			, 'gender': Private.getProfileDisplayGenders()
 			, 'image': Private.getProfileDisplayImages()
 		};
