@@ -429,28 +429,28 @@ var Accounts = ( function() {
 			profile = services[ service ];
 			last_updated = null;
 			switch( service ) {
-				'facebook':
+				case 'facebook':
 					id = parseInt( profile.id, 10 );
 					break;
-				'foursquare':
+				case 'foursquare':
 					id = parseInt( profile.id, 10 );
 					break;
-				'github':
+				case 'github':
 					id = profile.id;
 					break;
-				'google':
+				case 'google':
 					id = parseInt( profile.id, 10 );
 					break;
-				'linkedin':
+				case 'linkedin':
 					id = profile.id;
 					break;
-				'tumblr':
+				case 'tumblr':
 					id = null;
 					break;
-				'twitter': 
+				case 'twitter': 
 					id = parseIn( profile.id_str, 10 );
 					break;
-				'yahoo':
+				case 'yahoo':
 					id = profile.guid;
 					break;
 				default:
