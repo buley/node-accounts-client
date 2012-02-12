@@ -428,7 +428,7 @@ var Accounts = ( function() {
 		var attr, profile, id, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
-			last_updated = null;
+			id = null;
 			switch( service ) {
 				case 'facebook':
 					id = parseInt( profile.id, 10 );
@@ -464,34 +464,39 @@ var Accounts = ( function() {
 
 	Private.getProfileDisplayNames = function () {
 		var services = Private.getUnifiedProfiles();
-		var attr, profile, id, profiles = {};
+		var attr, profile, names = { display: '', first: '', last: '' }, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
-			last_updated = null;
+			name = null;
 			switch( service ) {
 				case 'facebook':
-					id = parseInt( profile.id, 10 );
+					names.display = profile.name;
+					names.first = profile.first_name;
+					names.last = profile.last_name;
 					break;
 				case 'foursquare':
-					id = parseInt( profile.id, 10 );
+					names.first = profile.firstName;
+					names.last = profile.lastName;
 					break;
 				case 'github':
-					id = profile.id;
+					names.display = profile.name;
 					break;
 				case 'google':
-					id = parseInt( profile.id, 10 );
+					names.display = profile.displayName;
+					names.first = profile.name.givenName;
+					names.last = profile.name.familyName;
 					break;
 				case 'linkedin':
-					id = profile.id;
+					names.display = profile.formattedName;
+					names.first = profile.firstName;
+					names.last = profile.lastName;
 					break;
 				case 'tumblr':
-					id = null;
 					break;
 				case 'twitter': 
-					id = parseInt( profile.id_str, 10 );
+					names.display = profile.name;
 					break;
 				case 'yahoo':
-					id = profile.guid;
 					break;
 				default:
 					break;
