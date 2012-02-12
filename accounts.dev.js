@@ -449,7 +449,7 @@ var Accounts = ( function() {
 					id = null;
 					break;
 				case 'twitter': 
-					id = parseIn( profile.id_str, 10 );
+					id = parseInt( profile.id_str, 10 );
 					break;
 				case 'yahoo':
 					id = profile.guid;
