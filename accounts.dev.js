@@ -532,7 +532,13 @@ var Accounts = ( function() {
 				case 'twitter': 
 					break;
 				case 'yahoo':
-					gender = profile.gender;
+					if( "M" === profile.gender ) {
+						gender = "male";
+					} else if( "F" === profile.gender ) {
+						gender = "female";
+					} else {
+						gender = profile.gender;
+					}
 					break;
 				default:
 					break;
@@ -782,7 +788,6 @@ var Accounts = ( function() {
 					description = profile.description;
 					break;
 				case 'yahoo':
-					description = profile.nickname;
 					break;
 				default:
 					break;
@@ -829,19 +834,65 @@ var Accounts = ( function() {
 		return profiles;
 	};
 
+
+
+	Private.unifyOptions = function( options ) {
+	
+		var services = Private.getActiveServices();
+		//1) check for consensus 
+		var value = null;
+		var consensus = false;
+		var attr, val, vals = {}, max = 0, max_service = null;
+		for( attr in options ) {
+			val = options[ attr ];
+			vals[ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : vals[ val ] + 1 );
+			if( vals[ val ] > max ) {
+				max = vals[ val ];
+				max_service = attr;
+			}
+		}
+		if( max > 1 ) {
+			consensus = true;
+		}
+		if( true === consensus ) {
+			//try to get highest ranked service with this response
+			var x = 0; xlen = services.length, service;
+			var profiles = {};
+			for( x = 0; x < xlen; x += 1 ) {
+				service = services[ x ];
+				if( null !== options[ service ] && 'undefined' !== typeof options[ service ] && service === max_service ) {
+					return options[ service ];
+				}
+			}
+		}
+		
+		//2) else default by order
+		var x = 0; xlen = services.length, service;
+		var profiles = {};
+		for( x = 0; x < xlen; x += 1 ) {
+			service = services[ x ];
+			if( null !== options[ service ] && 'undefined' !== typeof options[ service ] ) {
+				return options[ service ];
+			}
+		}
+		return null;
+
+
+	};
+
 	Private.getUnifiedProfile = function ( ) {
 		return {
 			'ids': Private.getProfileIds()
-			, 'username': Private.getProfileUsernames()
-			, 'email': Private.getProfileEmails()
-			, 'display_names': Private.getProfileDisplayNames()
-			, 'birthdate': Private.getProfileBirthdates()
-			, 'gender': Private.getProfileGenders()
-			, 'image': Private.getProfileImages()
-			, 'location': Private.getProfileLocations()
-			, 'description': Private.getProfileDescriptions()
 			, 'profiles': Private.getProfileURLs()
-			, 'url': Private.getProfilePersonalURLs()
+			, 'username': Private.unifyOptions( Private.getProfileUsernames() )
+			, 'email': Private.unifyOptions( Private.getProfileEmails() ) )
+			, 'display_name': Private.unifyOptions( Private.getProfileDisplayNames() )
+			, 'birthdate': Private.unifyOptions( Private.getProfileBirthdates() )
+			, 'gender': Private.unifyOptions( Private.getProfileGenders() )
+			, 'image': Private.unifyOptions( Private.getProfileImages() )
+			, 'location': Private.unifyOptions( Private.getProfileLocations() )
+			, 'description': Private.unifyOptions( Private.getProfileDescriptions() )
+			, 'url': Private.unifyOptions( Private.getProfilePersonalURLs() )
 		};
 	};
 
