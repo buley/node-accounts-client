@@ -94,14 +94,15 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof service || null === service ) {
 			return Private.getActiveServices();
 		}
+		//Todo: use indexOf for Mozilla (native C is faster)
 		var services = Private.activeServices;
 		var x = 0; len = services.length;
 		for( x = 0; x < len; x += 1 ) {
 			if( service === services[ x ] ) {
-				return false;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	};
 
 	Public.prototype.disabled = function( service ) {
