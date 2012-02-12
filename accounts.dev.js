@@ -467,7 +467,7 @@ var Accounts = ( function() {
 		var attr, profile, names = { display: '', first: '', last: '' }, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
-			name = null;
+			names = null;
 			switch( service ) {
 				case 'facebook':
 					names.display = profile.name;
@@ -501,7 +501,7 @@ var Accounts = ( function() {
 				default:
 					break;
 			};
-			profiles[ service ] = id;
+			profiles[ service ] = names;
 		};
 		return profiles;
 	};
