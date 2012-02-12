@@ -832,7 +832,7 @@ var Accounts = ( function() {
 	Private.getUnifiedProfile = function ( ) {
 		return {
 			'ids': Private.getProfileIds()
-			, 'username': Private.getProfileUsernames();
+			, 'username': Private.getProfileUsernames()
 			, 'email': Private.getProfileEmails()
 			, 'display_names': Private.getProfileDisplayNames()
 			, 'birthdate': Private.getProfileBirthdates()
