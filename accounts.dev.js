@@ -165,6 +165,10 @@ var Accounts = ( function() {
 		return Private.getProfile( type );
 	};
 	
+	Public.prototype.profiles = function() {
+		return Private.getProfiles();
+	};
+	
 	Public.prototype.socket = function( socket ) {
 		Private.sockets = [];
 		if( 'undefined' !== typeof socket && null !== socket ) {
@@ -467,6 +471,10 @@ var Accounts = ( function() {
 			return false;
 		}
 		Private.storage.session.set( Private.prefix + type + '_access_token_secret', secret );
+	};
+
+	Private.getProfiles = function () {
+		return Private.getUnifiedProfiles();
 	};
 
 	Private.getProfile = function ( type ) {
