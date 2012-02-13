@@ -932,7 +932,7 @@ var Accounts = ( function() {
 			'ids': Private.getProfileIds()
 			, 'profiles': Private.getProfileURLs()
 			, 'username': Private.unifyOptions( Private.getProfileUsernames() )
-			, 'email': Private.unifyOptions( Private.getProfileEmails() ) )
+			, 'email': Private.unifyOptions( Private.getProfileEmails() )
 			, 'display_name': Private.unifyOptionsAttributes( Private.getProfileDisplayNames() )
 			, 'birthdate': Private.unifyOptionsAttributes( Private.getProfileBirthdates() )
 			, 'gender': Private.unifyOptions( Private.getProfileGenders() )
