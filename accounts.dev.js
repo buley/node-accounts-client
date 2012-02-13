@@ -942,10 +942,56 @@ var Accounts = ( function() {
 	};
 
 
-	Private.unifyOptionsAttributes = function( options ) {
+	Private.unifyOptionsAttributes = function( options ) {	
+		var services = Private.getActiveServices();
+		//1) check for consensus 
+		var value = null;
+		var consensus = false;
+		var attr, val, vals = {}, max_vals = {}, maxes = {}, max_service = null;
+		
+		for( attr in options ) {
+			for( attr2 in options[ attr ] ) {
+				if( 'undefined' === typeof vals[ attr2 ] ) {
+					vals[ attr2 ] = {};
+				}
+				val = options[ attr ][ attr2 ];
+				if( null !== val ) {
+					vals[ attr2 ][ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : ( vals[ val ] + 1 );
+					if( 'undefined' === typeof maxes[ attr2 ] || ( vals[ attr2 ][ val ] > maxes[ attr2 ] ) ) {
+						maxes[ attr2 ] = vals[ attr2 ][ val ];
+					}
+				}
+			}
+		}
 
-		/zzz	
+		var attr3;
+		for( attr3 in maxes ) {	
+			if( maxes[ attr3 ] > 1 ) {
+				consensus = true;
+			}
+		}
+
+		if( true === consensus ) {
+			for( attr in vals ) {
+				if( maxes[ attr ] === max[ attr ] ) {
+					max_vals[ attr2 ] = max[ attr ];
+				}
+			}
+		} else {
+			for( attr in maxes ) {
+				var x = 0; xlen = services.length, service;
+				for( x = 0; x < xlen; x += 1 ) {
+					service = services[ x ];
+					if( 'undefined' !== typeof options[ service ][ attr ] && ( 'undefined' === typeof max_vals[ attr ] || null === max_vals[ attr ] ) ) {
+						max_vals[ attr ] = options[ service ][ attr ];
+					}
+				}
+			}
+		}
+
+		return max_vals;
 	
+
 	};
 
 	
