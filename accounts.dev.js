@@ -1,12 +1,14 @@
 var Accounts = ( function() { 
 
 	var Private = {};
+	var subscribers = {};
+
 	Private.sockets = [];
 	Private.socket = {};
 	Private.connected = false;
 	Private.prefix = '_acc_';
 
-	Private.allServices = [ 'facebook', 'foursquare', 'twitter', 'tumblr', 'github', 'google', 'yahoo', 'linkedin' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'foursquare', 'yahoo',  'github', 'tumblr' ];
 	Private.activeServices = [];
 
 	var z = 0, zlen = Private.allServices.length;
@@ -83,6 +85,7 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.enable = function( service ) {
+		Private.publish( 'enable', service );
 		if( 'undefined' === typeof service || null === service ) {
 			return Private.setActiveServices( Private.allServices );	
 		} else {
@@ -128,6 +131,7 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.disable = function( service ) {
+		Private.publish( 'disable', service );
 		if( 'undefined' !== typeof service || null === service ) {
 			return Private.setActiveServices( [] );	
 		} else {
@@ -147,6 +151,11 @@ var Accounts = ( function() {
 	Public.prototype.token = function( type ) {
 		return Private.getAccessToken( type );
 	};
+
+	Public.prototype.tokens = function() {
+		return Private.getAccessTokens();
+	};
+
 
 	Public.prototype.secret = function( type ) {
 		return Private.getAccessTokenSecret( type );
@@ -184,13 +193,18 @@ var Accounts = ( function() {
 	};
 	
 	Public.prototype.status = function() {
-		return Private.login_statuses();
+		var statuses = Private.login_statuses();
+		return statuses;
 	};
 
 	Public.prototype.login = function( service ) {
-		console.log( 'Attempting to log into ' + service );
+		return Public.prototype.session( service );
+	};
+
+	Public.prototype.session = function( service ) {
+		Private.publish( 'session', { service: service } );
 		if( Public.prototype.enabled( service ) ) {
-			console.log( 'Logging into ' + service );
+			Private.publish( 'sessioning', { service: service } );
 			return Private.do_login( service );
 		} else {
 			return false;
@@ -198,10 +212,73 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.logout = function( service ) {
+		return Public.prototype.unsession( service );
+	};
+
+	Public.prototype.unsession = function( service ) {
+		Private.publish( 'unsession', { service: service } );
 		if( Public.prototype.enabled( service ) ) {
+			Private.publish( 'unsessioning', { service: service } );
 			return Private.do_logout( service );
 		} else {
 			return false;
+		}
+	};
+
+	Public.prototype.subscribe = function( event_name, callback, id ) {
+		Private.publish( 'subscribe', { event: event_name, callback: callback, id: id } );
+		if( 'undefined' === typeof event_name || null === event_name || 'function' !== typeof callback ) {
+			return false;
+		}
+		if( null === id || 'undefined' === typeof id ) {
+			//create random id
+			var text = "";
+			var set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+			var x;
+			for( x = 0; x < 5; x++ ) { text += set.charAt( Math.floor( Math.random() * set.length ) ); }
+
+		}
+		if( 'undefined' === typeof subscribers[ event_name ] ) {
+			subscribers[ event_name ] = {};
+		}
+		subscribers[ event_name ][ id ] = callback;
+		Private.publish( 'subscribed', { event: event_name, callback: callback, id: id } );
+		return id;
+	};
+
+	Public.prototype.unsubscribe = function( event_name, id ) {
+		Private.publish( 'unsubscribe', { event: event_name, id: id } );
+		if( 'undefined' === typeof event_name || null === event_name ) {
+			return false;
+		}
+		var subs = subscribers[ event_name ];
+		if( 'undefined' === typeof subs || null === subs ) {
+			return false;
+		}
+		if( 'undefined' !== typeof subs[ id ] ) { 
+			delete subscribers[ event_name ][ id ];
+			Private.publish( 'unsubscribed', { event: event_name, id: id } );
+			return id;
+		} else {
+			return false;
+		}
+	};
+
+	Private.publish = function( event_name, value ) {
+
+		if( 'undefined' === typeof event_name || null === event_name ) {
+			return false;
+		}
+		var subs = subscribers[ event_name ];
+		if( 'undefined' === typeof subs || null === subs ) {
+			return false;
+		}
+		var attr, callback;
+		for( attr in subs ) {
+			callback = subs[ attr ];
+			if( 'function' === typeof callback ) {
+				callback( value, attr );
+			};
 		}
 	};
 
@@ -265,34 +342,6 @@ var Accounts = ( function() {
 
 	Private.debug = false;
 
-	Private.update = function() {
-		//get old
-		var old = {};
-		//get new
-		var current = {};
-		var attr1, attr2;
-		//for each old
-		for( attr1 in old ) {
-			if( old.hasOwnProperty( attr1 ) ) {
-				//for each current
-				for( attr2 in current ) {
-					if( current.hasOwnProperty( attr2 ) ) {
-						//if new !== old, trigger change()
-						if(  current[ attr2 ] !== old[ attr1 ] ) {
-							Private.change( attr, current );
-						}
-					}
-				}
-			}
-		}
-
-	};
-
-	Private.change = function( name, state ) {
-		//
-	};
-
-
 	Private.connect = function( service, oauth_type ) {
 		if( Public.prototype.disabled( service ) ) {
 			return false;
@@ -311,11 +360,23 @@ var Accounts = ( function() {
 			return;
 		}
 
-		console.log('Connecting to ' + service + '...', request );
+		Private.publish( 'connect', { service: service, oauth_type: oauth_type } );
+
 		Private.socket.emit( 'account', request );
 
 	};	
 
+	Private.getAccessTokens = function() {
+		var services = Private.getActiveServices();
+		var x = 0; xlen = services.length, service, tokens = {};
+		for( x = 0; x < xlen; x += 1 ) {
+			service = services[ x ];
+			tokens[ service ] = Private.getAccessToken( service );
+		}
+		return tokens;
+	};
+
+	
 	Private.getAccessToken = function( type ) {
 		if( Public.prototype.disabled( type ) ) {
 			return null;
@@ -342,6 +403,9 @@ var Accounts = ( function() {
 				break;
 			case 'yahoo':
 				access_token = Private.storage.session.get( 'yahoo_access_token' );
+				break;
+			case 'linkedin':
+				access_token = Private.storage.session.get( 'linkedin_access_token' );
 				break;
 			default: 
 				break;
@@ -382,6 +446,1725 @@ var Accounts = ( function() {
 				break;
 			case 'github': 
 				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
+				break;
+			case 'linkedin': 
+				access_token_secret = Private.storage.session.get( 'linkedin_access_token_secret' );
+				break;
+			case 'yahoo': 
+				access_token_secret = Private.storage.session.get( 'yahoo_access_token_secret' );
+				break;
+			default: 
+				break;
+		};
+		return access_token_secret;
+	};
+
+	Private.setAccessTokenSecret = function( type, secret ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
+			return false;
+		}
+		Private.storage.session.set( Private.prefix + type + '_access_token_secret', secret );
+	};
+
+	Private.getProfile = function ( type ) {
+		if( !Public.prototype.enabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || null === type ) {
+			return Private.getUnifiedProfile();
+		}
+		return Private.storage.local.get( Private.prefix + type + '_profile' );
+	};
+	
+	Private.setProfile = function ( type, data ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
+			return false;
+		}
+		return Private.storage.local.set( Private.prefix + type + '_profile', data );
+	};
+
+
+	Private.getProfileIds = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, id, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			if( profile !== null ) {
+
+				id = null;
+				switch( service ) {
+					case 'facebook':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'foursquare':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'github':
+						id = profile.id;
+						break;
+					case 'google':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'linkedin':
+						id = profile.id;
+						break;
+					case 'tumblr':
+						id = null;
+						break;
+					case 'twitter': 
+						id = parseInt( profile.id_str, 10 );
+						break;
+					case 'yahoo':
+						id = profile.guid;
+						break;
+					default:
+						break;
+				};
+				profiles[ service ] = id;
+			} else {
+				profiles[ service ] = null;
+			}
+		};
+		return profiles;
+	};
+
+	Private.getProfileDisplayNames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, names, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			names = { display: null, first: null, last: null };
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						names.display = profile.name;
+						names.first = profile.first_name;
+						names.last = profile.last_name;
+						break;
+					case 'foursquare':
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'github':
+						names.display = profile.name;
+						break;
+					case 'google':
+						names.display = profile.displayName;
+						names.first = profile.name.givenName;
+						names.last = profile.name.familyName;
+						break;
+					case 'linkedin':
+						names.display = profile.formattedName;
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						names.display = profile.name;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = names;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileGenders = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, gender, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			gender = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						gender = profile.gender;
+						break;
+					case 'foursquare':
+						gender = profile.gender;
+						break;
+					case 'github':
+						break;
+					case 'google':
+						gender = profile.gender;
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						if( "M" === profile.gender ) {
+							gender = "male";
+						} else if( "F" === profile.gender ) {
+							gender = "female";
+						} else {
+							gender = profile.gender;
+						}
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = gender;
+		};
+		return profiles;
+	};
+
+	Private.getProfileBirthdates = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, birthdate, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			birthdate = { day: null, month: null, year: null };
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						birthdate.day = new Date( profile.birthday ).getDate();
+						birthdate.month = new Date( profile.birthday ).getMonth() + 1;
+						birthdate.year = new Date( profile.birthday ).getFullYear();
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						birthdate.year = profile.birthYear;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = birthdate;
+		};
+		return profiles;
+	};
+
+	Private.getProfileImages = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, image, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			image = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						image = profile.photo;
+						break;
+					case 'github':
+						image = profile.avatar_url;
+						break;
+					case 'google':
+						image = profile.image.url;
+						break;
+					case 'linkedin':
+						image = profile.pictureUrl;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						image = profile.profile_image_url;
+						break;
+					case 'yahoo':
+						image = profile.image.imageUrl;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = image;
+		};
+		return profiles;
+	};
+
+	Private.getProfilePersonalURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], personal_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			personal_url = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						personal_url = profile.website;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						personal_url = profile.blog;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						personal_url = profile.url;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = personal_url;
+		};
+		return profiles;
+	};
+
+
+
+	Private.getProfileURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], profile_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			profile_url = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						profile_url = profile.link;
+						break;
+					case 'foursquare':
+						profile_url = profile.canonicalUrl;
+						break;
+					case 'github':
+						profile_url = profile.html_url;
+						break;
+					case 'google':
+						profile_url = profile.url;
+						break;
+					case 'linkedin':
+						profile_url = profile.publicProfileUrl;
+						break;
+					case 'tumblr':
+						profile_url = "http://" + profile.name + ".tumblr.com/";
+						break;
+					case 'twitter': 
+						profile_url = "http://twitter.com/#!/" + profile.screen_name;
+						break;
+					case 'yahoo':
+						profile_url = profile.profileUrl;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = profile_url;
+		};
+		return profiles;
+	};
+
+	Private.getProfileEmails = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, email, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			email = null;
+			if( null !== profile ) {
+				switch( service ) {
+					case 'facebook':
+						email = profile.email;
+						break;
+					case 'foursquare':
+						email = profile.contact.email;
+						break;
+					case 'github':
+						email = profile.email;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = email;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileUsernames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, username, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			username = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						username = profile.username;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						username = profile.login;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						username = profile.name;
+						break;
+					case 'twitter': 
+						username = profile.screen_name;
+						break;
+					case 'yahoo':
+						username = profile.nickname;
+						break;
+					default:
+						break;
+				};
+
+			}
+			profiles[ service ] = username;
+		};
+		return profiles;
+	};
+
+	Private.getProfileDescriptions = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, description, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			description = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						description = profile.bio;
+						break;
+					case 'linkedin':
+						description = profile.headline;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						description = profile.description;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = description;
+		};
+		return profiles;
+	};
+
+	Private.getProfileLocations = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, location, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			location = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						location = profile.location.name;
+						break;
+					case 'foursquare':
+						location = profile.homeCity;
+						break;
+					case 'github':
+						location = profile.location;
+						break;
+					case 'google':
+						location = profile.bio;
+						break;
+					case 'linkedin':
+						location = profile.location.name;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						location = profile.location;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = location;
+		};
+		return profiles;
+	};
+
+
+	Private.unifyOptionsAttributes = function( options ) {
+
+		/zzz	
+	
+	};
+
+	
+	Private.getAccessToken = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		var access_token = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token = Private.storage.session.get( 'facebook_access_token' );
+				break;
+			case 'twitter': 
+				access_token = Private.storage.session.get( 'twitter_access_token' );
+				break;
+			case 'facebook': 
+				access_token = Private.storage.session.get( 'foursquare_access_token' );
+				break;
+			case 'google': 
+				access_token = Private.storage.session.get( 'google_access_token' );
+				break;
+			case 'tumblr': 
+				access_token = Private.storage.session.get( 'tumblr_access_token' );
+				break;
+			case 'github': 
+				access_token = Private.storage.session.get( 'github_access_token' );
+				break;
+			case 'yahoo':
+				access_token = Private.storage.session.get( 'yahoo_access_token' );
+				break;
+			case 'linkedin':
+				access_token = Private.storage.session.get( 'linkedin_access_token' );
+				break;
+			default: 
+				break;
+		};
+		return access_token;
+	};
+
+	Private.setAccessToken = function( type, token ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof token || null === type || null === token ) {
+			return false;
+		}
+		return Private.storage.session.set( type + '_access_token', token );
+	};
+
+	Private.getAccessTokenSecret = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		var access_token_secret = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'facebook_access_token_secret' );
+				break;
+			case 'twitter': 
+				access_token_secret = Private.storage.session.get( 'twitter_access_token_secret' );
+				break;
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
+				break;
+			case 'google': 
+				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
+				break;
+			case 'tumblr': 
+				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
+				break;
+			case 'github': 
+				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
+				break;
+			case 'linkedin': 
+				access_token_secret = Private.storage.session.get( 'linkedin_access_token_secret' );
+				break;
+			case 'yahoo': 
+				access_token_secret = Private.storage.session.get( 'yahoo_access_token_secret' );
+				break;
+			default: 
+				break;
+		};
+		return access_token_secret;
+	};
+
+	Private.setAccessTokenSecret = function( type, secret ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
+			return false;
+		}
+		Private.storage.session.set( Private.prefix + type + '_access_token_secret', secret );
+	};
+
+	Private.getProfile = function ( type ) {
+		if( !Public.prototype.enabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || null === type ) {
+			return Private.getUnifiedProfile();
+		}
+		return Private.storage.local.get( Private.prefix + type + '_profile' );
+	};
+	
+	Private.setProfile = function ( type, data ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
+			return false;
+		}
+		return Private.storage.local.set( Private.prefix + type + '_profile', data );
+	};
+
+
+	Private.getProfileIds = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, id, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			if( profile !== null ) {
+
+				id = null;
+				switch( service ) {
+					case 'facebook':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'foursquare':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'github':
+						id = profile.id;
+						break;
+					case 'google':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'linkedin':
+						id = profile.id;
+						break;
+					case 'tumblr':
+						id = null;
+						break;
+					case 'twitter': 
+						id = parseInt( profile.id_str, 10 );
+						break;
+					case 'yahoo':
+						id = profile.guid;
+						break;
+					default:
+						break;
+				};
+				profiles[ service ] = id;
+			} else {
+				profiles[ service ] = null;
+			}
+		};
+		return profiles;
+	};
+
+	Private.getProfileDisplayNames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, names, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			names = { display: null, first: null, last: null };
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						names.display = profile.name;
+						names.first = profile.first_name;
+						names.last = profile.last_name;
+						break;
+					case 'foursquare':
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'github':
+						names.display = profile.name;
+						break;
+					case 'google':
+						names.display = profile.displayName;
+						names.first = profile.name.givenName;
+						names.last = profile.name.familyName;
+						break;
+					case 'linkedin':
+						names.display = profile.formattedName;
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						names.display = profile.name;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = names;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileGenders = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, gender, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			gender = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						gender = profile.gender;
+						break;
+					case 'foursquare':
+						gender = profile.gender;
+						break;
+					case 'github':
+						break;
+					case 'google':
+						gender = profile.gender;
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						if( "M" === profile.gender ) {
+							gender = "male";
+						} else if( "F" === profile.gender ) {
+							gender = "female";
+						} else {
+							gender = profile.gender;
+						}
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = gender;
+		};
+		return profiles;
+	};
+
+	Private.getProfileBirthdates = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, birthdate, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			birthdate = { day: null, month: null, year: null };
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						birthdate.day = new Date( profile.birthday ).getDate();
+						birthdate.month = new Date( profile.birthday ).getMonth() + 1;
+						birthdate.year = new Date( profile.birthday ).getFullYear();
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						birthdate.year = profile.birthYear;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = birthdate;
+		};
+		return profiles;
+	};
+
+	Private.getProfileImages = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, image, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			image = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						image = profile.photo;
+						break;
+					case 'github':
+						image = profile.avatar_url;
+						break;
+					case 'google':
+						image = profile.image.url;
+						break;
+					case 'linkedin':
+						image = profile.pictureUrl;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						image = profile.profile_image_url;
+						break;
+					case 'yahoo':
+						image = profile.image.imageUrl;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = image;
+		};
+		return profiles;
+	};
+
+	Private.getProfilePersonalURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], personal_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			personal_url = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						personal_url = profile.website;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						personal_url = profile.blog;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						personal_url = profile.url;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = personal_url;
+		};
+		return profiles;
+	};
+
+
+
+	Private.getProfileURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], profile_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			profile_url = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						profile_url = profile.link;
+						break;
+					case 'foursquare':
+						profile_url = profile.canonicalUrl;
+						break;
+					case 'github':
+						profile_url = profile.html_url;
+						break;
+					case 'google':
+						profile_url = profile.url;
+						break;
+					case 'linkedin':
+						profile_url = profile.publicProfileUrl;
+						break;
+					case 'tumblr':
+						profile_url = "http://" + profile.name + ".tumblr.com/";
+						break;
+					case 'twitter': 
+						profile_url = "http://twitter.com/#!/" + profile.screen_name;
+						break;
+					case 'yahoo':
+						profile_url = profile.profileUrl;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = profile_url;
+		};
+		return profiles;
+	};
+
+	Private.getProfileEmails = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, email, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			email = null;
+			if( null !== profile ) {
+				switch( service ) {
+					case 'facebook':
+						email = profile.email;
+						break;
+					case 'foursquare':
+						email = profile.contact.email;
+						break;
+					case 'github':
+						email = profile.email;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = email;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileUsernames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, username, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			username = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						username = profile.username;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						username = profile.login;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						username = profile.name;
+						break;
+					case 'twitter': 
+						username = profile.screen_name;
+						break;
+					case 'yahoo':
+						username = profile.nickname;
+						break;
+					default:
+						break;
+				};
+
+			}
+			profiles[ service ] = username;
+		};
+		return profiles;
+	};
+
+	Private.getProfileDescriptions = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, description, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			description = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						description = profile.bio;
+						break;
+					case 'linkedin':
+						description = profile.headline;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						description = profile.description;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = description;
+		};
+		return profiles;
+	};
+
+	Private.getProfileLocations = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, location, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			location = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						location = profile.location.name;
+						break;
+					case 'foursquare':
+						location = profile.homeCity;
+						break;
+					case 'github':
+						location = profile.location;
+						break;
+					case 'google':
+						location = profile.bio;
+						break;
+					case 'linkedin':
+						location = profile.location.name;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						location = profile.location;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = location;
+		};
+		return profiles;
+	};
+
+
+	Private.unifyOptionsAttributes = function( options ) {
+
+		//zzz	
+	
+	};
+
+	
+	Private.getAccessToken = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		var access_token = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token = Private.storage.session.get( 'facebook_access_token' );
+				break;
+			case 'twitter': 
+				access_token = Private.storage.session.get( 'twitter_access_token' );
+				break;
+			case 'facebook': 
+				access_token = Private.storage.session.get( 'foursquare_access_token' );
+				break;
+			case 'google': 
+				access_token = Private.storage.session.get( 'google_access_token' );
+				break;
+			case 'tumblr': 
+				access_token = Private.storage.session.get( 'tumblr_access_token' );
+				break;
+			case 'github': 
+				access_token = Private.storage.session.get( 'github_access_token' );
+				break;
+			case 'yahoo':
+				access_token = Private.storage.session.get( 'yahoo_access_token' );
+				break;
+			case 'linkedin':
+				access_token = Private.storage.session.get( 'linkedin_access_token' );
+				break;
+			default: 
+				break;
+		};
+		return access_token;
+	};
+
+	Private.setAccessToken = function( type, token ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof token || null === type || null === token ) {
+			return false;
+		}
+		return Private.storage.session.set( type + '_access_token', token );
+	};
+
+	Private.getAccessTokenSecret = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		var access_token_secret = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'facebook_access_token_secret' );
+				break;
+			case 'twitter': 
+				access_token_secret = Private.storage.session.get( 'twitter_access_token_secret' );
+				break;
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
+				break;
+			case 'google': 
+				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
+				break;
+			case 'tumblr': 
+				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
+				break;
+			case 'github': 
+				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
+				break;
+			case 'linkedin': 
+				access_token_secret = Private.storage.session.get( 'linkedin_access_token_secret' );
+				break;
+			case 'yahoo': 
+				access_token_secret = Private.storage.session.get( 'yahoo_access_token_secret' );
+				break;
+			default: 
+				break;
+		};
+		return access_token_secret;
+	};
+
+	Private.setAccessTokenSecret = function( type, secret ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
+			return false;
+		}
+		Private.storage.session.set( Private.prefix + type + '_access_token_secret', secret );
+	};
+
+	Private.getProfile = function ( type ) {
+		if( !Public.prototype.enabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || null === type ) {
+			return Private.getUnifiedProfile();
+		}
+		return Private.storage.local.get( Private.prefix + type + '_profile' );
+	};
+	
+	Private.setProfile = function ( type, data ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
+			return false;
+		}
+		return Private.storage.local.set( Private.prefix + type + '_profile', data );
+	};
+
+
+	Private.getProfileIds = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, id, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			if( profile !== null ) {
+
+				id = null;
+				switch( service ) {
+					case 'facebook':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'foursquare':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'github':
+						id = profile.id;
+						break;
+					case 'google':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'linkedin':
+						id = profile.id;
+						break;
+					case 'tumblr':
+						id = null;
+						break;
+					case 'twitter': 
+						id = parseInt( profile.id_str, 10 );
+						break;
+					case 'yahoo':
+						id = profile.guid;
+						break;
+					default:
+						break;
+				};
+				profiles[ service ] = id;
+			} else {
+				profiles[ service ] = null;
+			}
+		};
+		return profiles;
+	};
+
+	Private.getProfileDisplayNames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, names, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			names = { display: null, first: null, last: null };
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						names.display = profile.name;
+						names.first = profile.first_name;
+						names.last = profile.last_name;
+						break;
+					case 'foursquare':
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'github':
+						names.display = profile.name;
+						break;
+					case 'google':
+						names.display = profile.displayName;
+						names.first = profile.name.givenName;
+						names.last = profile.name.familyName;
+						break;
+					case 'linkedin':
+						names.display = profile.formattedName;
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						names.display = profile.name;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = names;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileGenders = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, gender, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			gender = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						gender = profile.gender;
+						break;
+					case 'foursquare':
+						gender = profile.gender;
+						break;
+					case 'github':
+						break;
+					case 'google':
+						gender = profile.gender;
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						if( "M" === profile.gender ) {
+							gender = "male";
+						} else if( "F" === profile.gender ) {
+							gender = "female";
+						} else {
+							gender = profile.gender;
+						}
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = gender;
+		};
+		return profiles;
+	};
+
+	Private.getProfileBirthdates = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, birthdate, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			birthdate = { day: null, month: null, year: null };
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						birthdate.day = new Date( profile.birthday ).getDate();
+						birthdate.month = new Date( profile.birthday ).getMonth() + 1;
+						birthdate.year = new Date( profile.birthday ).getFullYear();
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						birthdate.year = profile.birthYear;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = birthdate;
+		};
+		return profiles;
+	};
+
+	Private.getProfileImages = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, image, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			image = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						image = profile.photo;
+						break;
+					case 'github':
+						image = profile.avatar_url;
+						break;
+					case 'google':
+						image = profile.image.url;
+						break;
+					case 'linkedin':
+						image = profile.pictureUrl;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						image = profile.profile_image_url;
+						break;
+					case 'yahoo':
+						image = profile.image.imageUrl;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = image;
+		};
+		return profiles;
+	};
+
+	Private.getProfilePersonalURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], personal_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			personal_url = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						personal_url = profile.website;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						personal_url = profile.blog;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						personal_url = profile.url;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = personal_url;
+		};
+		return profiles;
+	};
+
+
+
+	Private.getProfileURLs = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, other = [], profile_url, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			profile_url = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						profile_url = profile.link;
+						break;
+					case 'foursquare':
+						profile_url = profile.canonicalUrl;
+						break;
+					case 'github':
+						profile_url = profile.html_url;
+						break;
+					case 'google':
+						profile_url = profile.url;
+						break;
+					case 'linkedin':
+						profile_url = profile.publicProfileUrl;
+						break;
+					case 'tumblr':
+						profile_url = "http://" + profile.name + ".tumblr.com/";
+						break;
+					case 'twitter': 
+						profile_url = "http://twitter.com/#!/" + profile.screen_name;
+						break;
+					case 'yahoo':
+						profile_url = profile.profileUrl;
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = profile_url;
+		};
+		return profiles;
+	};
+
+	Private.getProfileEmails = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, email, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			email = null;
+			if( null !== profile ) {
+				switch( service ) {
+					case 'facebook':
+						email = profile.email;
+						break;
+					case 'foursquare':
+						email = profile.contact.email;
+						break;
+					case 'github':
+						email = profile.email;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = email;
+		};
+		return profiles;
+	};
+
+
+	Private.getProfileUsernames = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, username, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			username = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						username = profile.username;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						username = profile.login;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						username = profile.name;
+						break;
+					case 'twitter': 
+						username = profile.screen_name;
+						break;
+					case 'yahoo':
+						username = profile.nickname;
+						break;
+					default:
+						break;
+				};
+
+			}
+			profiles[ service ] = username;
+		};
+		return profiles;
+	};
+
+	Private.getProfileDescriptions = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, description, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			description = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						description = profile.bio;
+						break;
+					case 'linkedin':
+						description = profile.headline;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						description = profile.description;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = description;
+		};
+		return profiles;
+	};
+
+	Private.getProfileLocations = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, location, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			location = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						location = profile.location.name;
+						break;
+					case 'foursquare':
+						location = profile.homeCity;
+						break;
+					case 'github':
+						location = profile.location;
+						break;
+					case 'google':
+						location = profile.bio;
+						break;
+					case 'linkedin':
+						location = profile.location.name;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						location = profile.location;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = location;
+		};
+		return profiles;
+	};
+
+
+	Private.unifyOptionsAttributes = function( options ) {
+
+		/zzz	
+	
+	};
+
+	
+	Private.getAccessToken = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		var access_token = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token = Private.storage.session.get( 'facebook_access_token' );
+				break;
+			case 'twitter': 
+				access_token = Private.storage.session.get( 'twitter_access_token' );
+				break;
+			case 'facebook': 
+				access_token = Private.storage.session.get( 'foursquare_access_token' );
+				break;
+			case 'google': 
+				access_token = Private.storage.session.get( 'google_access_token' );
+				break;
+			case 'tumblr': 
+				access_token = Private.storage.session.get( 'tumblr_access_token' );
+				break;
+			case 'github': 
+				access_token = Private.storage.session.get( 'github_access_token' );
+				break;
+			case 'yahoo':
+				access_token = Private.storage.session.get( 'yahoo_access_token' );
+				break;
+			case 'linkedin':
+				access_token = Private.storage.session.get( 'linkedin_access_token' );
+				break;
+			default: 
+				break;
+		};
+		return access_token;
+	};
+
+	Private.setAccessToken = function( type, token ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		if( 'undefined' === typeof type || 'undefined' === typeof token || null === type || null === token ) {
+			return false;
+		}
+		return Private.storage.session.set( type + '_access_token', token );
+	};
+
+	Private.getAccessTokenSecret = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+		var access_token_secret = null;
+		switch( type ) {
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'facebook_access_token_secret' );
+				break;
+			case 'twitter': 
+				access_token_secret = Private.storage.session.get( 'twitter_access_token_secret' );
+				break;
+			case 'facebook': 
+				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
+				break;
+			case 'google': 
+				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
+				break;
+			case 'tumblr': 
+				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
+				break;
+			case 'github': 
+				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
+				break;
+			case 'linkedin': 
+				access_token_secret = Private.storage.session.get( 'linkedin_access_token_secret' );
 				break;
 			case 'yahoo': 
 				access_token_secret = Private.storage.session.get( 'yahoo_access_token_secret' );
@@ -1057,30 +2840,13 @@ var Accounts = ( function() {
 		Private.connect( 'facebook', 2 );	
 	};
 
-	Private.facebook.handle_confirm = function( params, on_success, on_error ) {
+	Private.facebook.handle_confirm = function( params ) {
 
-		var success = function( params ) {
-			
-			if( 'function' === typeof on_success ) {
-				on_success( params );
-			}
-
-		};
-
-		var error = function( params ) {
-			
-			if( 'function' === typeof on_error ) {
-				on_error( params );
-			}
-
-		};
-
-		console.log('Private.facebook.handle_confirm()', params );
-
+		var data = null;
 		if( !!params.profile_data ) {
-			var data =  params.profile_data || {};
+			data =  params.profile_data || {};
 			data.service = 'facebook';
-			console.log( 'putting facebook', data );
+			Private.publish( 'profile', { service: 'facebook', data: data } );
 			Private.setProfile( 'facebook', data );
 		}	
 
@@ -1090,6 +2856,7 @@ var Accounts = ( function() {
 			console.log('access token', access_token );
 			Private.storage.session.set( 'facebook_access_token', access_token );
 			Private.storage.session.set( 'facebook_access_token_secret', access_token_secret );
+			Private.publish( 'sessioned', { service: 'facebook', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 	};
 
@@ -1099,80 +2866,48 @@ var Accounts = ( function() {
 	};
 
 
-	Private.foursquare.handle_confirm = function( params, on_success, on_error ) {
+	Private.foursquare.handle_confirm = function( params ) {
 
-		var success = function( params ) {
-			
-			if( 'function' === typeof on_success ) {
-				on_success( params );
-			}
-
-		};
-
-		var error = function( params ) {
-			
-			if( 'function' === typeof on_error ) {
-				on_error( params );
-			}
-		};
-
-		console.log('Private.foursquare.handle_confirm() foursquare', params );
-
-
+		var data = null;
 		if( params.profile_data ) {
-			var data =  params.profile_data || {};
+			data =  params.profile_data || {};
 			data.service = 'foursquare';	
-			console.log('putting foursquare', data );
+			Private.publish( 'profile', { service: 'foursquare', data: data } );
 			Private.setProfile( 'foursquare', data );
 		}
 
 		var access_token = params.access_token;
 		if( !!access_token ) {
-			console.log('access token', access_token );
-
 			Private.storage.session.set( 'foursquare_access_token', access_token );
+			Private.publish( 'sessioned', { service: 'foursquare', oauth_token: access_token, profile: data } );
 		}
 	};
 
 	/* Yahoo */
 	Private.yahoo = Private.yahoo || {};
-Private.yahoo.connect = function() {
-	Private.connect( 'yahoo', 1 );	
-};
+	Private.yahoo.connect = function() {
 
-Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
-	var success = function( params ) {
-		if( 'function' === typeof on_success ) {
-			on_success( params );
+
+	Private.yahoo.handle_confirm = function( params ) {
+
+		var data = null;
+		if( !!params.profile_data ) {
+			var data =  params.profile_data || {};
+			data.service = 'yahoo';
+			Private.publish( 'profile', { service: 'yahoo', data: data } );
+			Private.setProfile( 'yahoo', data );
+		}
+
+		var access_token = params.access_token;
+		var access_token_secret = params.access_token_secret;
+		if( !!access_token ) {
+			Private.storage.session.set( 'yahoo_access_token', access_token );
+			Private.storage.session.set( 'yahoo_access_token_secret', access_token_secret );
+			Private.publish( 'sessioned', { service: 'yahoo', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
+			//Private.yahoo.connect();
 		}
 	};
 
-	var error = function( params ) {		
-		if( 'function' === typeof on_error ) {
-			on_error( params );
-		}
-	};
-
-	console.log('Private.yahoo.handle_confirm()', params );
-	if( !!params.profile_data ) {
-		var data =  params.profile_data || {};
-		data.service = 'yahoo';
-
-		console.log('putting yahoo', data );
-		Private.setProfile( 'yahoo', data );
-	}
-
-	var access_token = params.access_token;
-	var access_token_secret = params.access_token_secret;
-	if( !!access_token ) {
-		console.log('access and secret tokens', access_token, access_token_secret );
-		Private.storage.session.set( 'yahoo_access_token', access_token );
-		Private.storage.session.set( 'yahoo_access_token_secret', access_token_secret );
-
-		//Private.yahoo.connect();
-
-	}
-};
 	/* Linkedin */
 
 	Private.linkedin = Private.linkedin || {};
@@ -1180,39 +2915,21 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		Private.connect( 'linkedin', 1 );	
 	};
 
-	Private.linkedin.handle_confirm = function( params, on_success, on_error ) {
-		var success = function( params ) {
-			
-			if( 'function' === typeof on_success ) {
-				on_success( params );
-			}
-
-		};
-
-		var error = function( params ) {		
-			if( 'function' === typeof on_error ) {
-				on_error( params );
-			}
-		};
-
-		console.log('Private.linkedin.handle_confirm()', params );
+	Private.linkedin.handle_confirm = function( params ) {
+		var data = null;
 		if( !!params.profile_data ) {
-			var data =  params.profile_data || {};
+			data = params.profile_data || {};
 			data.service = 'linkedin';
-
-			console.log('putting linkedin', data );
+			Private.publish( 'profile', { service: 'linkedin', data: data } );
 			Private.setProfile( 'linkedin', data );
 		}
 
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			console.log('access and secret tokens', access_token, access_token_secret );
 			Private.storage.session.set( 'linkedin_access_token', access_token );
 			Private.storage.session.set( 'linkedin_access_token_secret', access_token_secret );
-
-			//Private.linkedin.connect();
-
+			Private.publish( 'sessioned', { service: 'linkedin', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 	};
 
@@ -1226,39 +2943,23 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 	};
 
 	Private.tumblr.handle_confirm = function( params, on_success, on_error ) {
-		var success = function( params ) {
-			
-			if( 'function' === typeof on_success ) {
-				on_success( params );
-			}
 
-		};
-
-		var error = function( params ) {		
-			if( 'function' === typeof on_error ) {
-				on_error( params );
-			}
-		};
-
-		console.log('Private.tumblr.handle_confirm()', params );
+		var data;
 		if( !!params.profile_data ) {
-			var data =  params.profile_data || {};
+			data =  params.profile_data || {};
 			data.service = 'tumblr';
-
-			console.log('putting tumblr', data );
+			Private.publish( 'profile', { service: 'tumblr', data: data } );
 			Private.setProfile( 'tumblr', data );
 		}
 
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			console.log('access and secret tokens', access_token, access_token_secret );
 			Private.storage.session.set( 'tumblr_access_token', access_token );
 			Private.storage.session.set( 'tumblr_access_token_secret', access_token_secret );
-
-			//Private.tumblr.connect();
-
+			Private.publish( 'sessioned', { service: 'tumblr', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
+
 	};
 
 	/* Github */
@@ -1269,39 +2970,23 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 	};
 
 
-	Private.github.handle_confirm = function( params, on_success, on_error ) {
-
-		var success = function( params ) {
-			
-			if( 'function' === typeof on_success ) {
-				on_success( params );
-			}
-
-		};
-
-		var error = function( params ) {
-			
-			if( 'function' === typeof on_error ) {
-				on_error( params );
-			}
-		};
-
-		console.log('Private.github.handle_confirm() github', params );
-
+	Private.github.handle_confirm = function( params ) {
 
 		if( params.profile_data ) {
 			var data =  params.profile_data || {};
 			data.service = 'github';	
-			console.log('putting github', data );
+			Private.publish( 'profile', { service: 'github', data: data } );
 			Private.setProfile( 'github', data );
 		}
 
 		var access_token = params.access_token;
+
 		if( !!access_token ) {
 			console.log('access token', access_token );
-
+			Private.publish( 'sessioned', { service: 'github', oauth_token: access_token, profile: data } );
 			Private.storage.session.set( 'github_access_token', access_token );
 		}
+
 	};
 
 
@@ -1310,41 +2995,23 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		Private.connect( 'twitter', 1 );	
 	};
 
-	Private.twitter.handle_confirm = function( params, on_success, on_error ) {
+	Private.twitter.handle_confirm = function( params ) {
 
-		var success = function( params ) {
-			
-			if( 'function' === typeof on_success ) {
-				on_success( params );
-			}
-
-		};
-
-		var error = function( params ) {		
-			if( 'function' === typeof on_error ) {
-				on_error( params );
-			}
-		};
-
-		console.log('Private.twitter.handle_confirm()', params );
+		var data = null;
 		if( !!params.profile_data ) {
-			var data =  params.profile_data || {};
+			data =  params.profile_data || {};
 			data.service = 'twitter';
-
-			console.log('putting twitter', data );
+			Private.publish( 'profile', { service: 'twitter', data: data } );
 			Private.setProfile( 'twitter', data );
 		}
 
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			console.log('access and secret tokens', access_token, access_token_secret );
-
 			Private.storage.session.set( 'twitter_access_token', access_token );
 			Private.storage.session.set( 'twitter_access_token_secret', access_token_secret );
-
+			Private.publish( 'sessioned', { service: 'twitter', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 			//Private.twitter.connect();
-
 		}
 	};
 
@@ -1354,7 +3021,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		
 		var facebook_code = Private.storage.session.get( 'facebook_code' );
 		if( 'undefined' !== typeof facebook_code && null !== facebook_code ) {
-			console.log('FACEBOOK',facebook_code);
+			Private.publish( 'verifying', { service: 'facebook', 'code': facebook_code } );
 			Private.do_confirm( 'facebook', { 'code': facebook_code } );
 			Private.storage.session.delete( 'facebook_code' );
 		}	
@@ -1362,7 +3029,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		var twitter_token = Private.storage.session.get( 'twitter_oauth_request_token' );
 		var twitter_verifier = Private.storage.session.get( 'twitter_oauth_request_verifier' );
 		if( 'undefined' !== typeof twitter_token && null !== twitter_token && 'undefined' !== typeof twitter_verifier && null !== twitter_verifier ) {
-			console.log('TWITTER',twitter_token,twitter_verifier);
+			Private.publish( 'verifying', { service: 'twitter', 'oauth_token': twitter_token, 'oauth_verifier': twitter_verifier } );
 			Private.do_confirm( 'twitter', { 'oauth_token': twitter_token, 'oauth_verifier': twitter_verifier } );
 			Private.storage.session.delete( 'twitter_oauth_request_token' );
 			Private.storage.session.delete( 'twitter_oauth_request_verifier' );
@@ -1370,21 +3037,21 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 
 		var foursquare_code = Private.storage.session.get( 'foursquare_code' );
 		if( 'undefined' !== typeof foursquare_code && null !== foursquare_code  ) {
-			console.log('FOURSQUARE',foursquare_code);
+			Private.publish( 'verifying', { service: 'foursquare', 'code': foursquare_code } );
 			Private.do_confirm( 'foursquare', { 'code': foursquare_code } );
 			Private.storage.session.delete( 'foursquare_code' );
 		}
 
 		var google_code = Private.storage.session.get( 'google_code' );
 		if( 'undefined' !== typeof google_code && null !== google_code ) {
+			Private.publish( 'verifying', { service: 'google', 'code': google_code } );
 			Private.do_confirm( 'google', { 'code': google_code } );
-			console.log('GOOGLE',google_code);
 			Private.storage.session.delete( 'google_code' );
 		}
 
 		var github_code = Private.storage.session.get( 'github_code' );
 		if( 'undefined' !== typeof github_code && null !== github_code  ) {
-			console.log('GITHUB',github_code);
+			Private.publish( 'verifying', { service: 'github', 'code': github_code } );
 			Private.do_confirm( 'github', { 'code': github_code } );
 			Private.storage.session.delete( 'github_code' );
 		}
@@ -1393,6 +3060,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
 		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
 		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
+			Private.publish( 'verifying', { service: 'tumblr', 'oauth_token': tumblr_token, 'oauth_verifier': tumblr_verifier } );
 			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_token_secret': tumblr_token_secret, 'oauth_verifier': tumblr_verifier } );
 			Private.storage.session.delete( 'tumblr_oauth_request_token' );
 			Private.storage.session.delete( 'tumblr_oauth_request_token_secret' );
@@ -1403,6 +3071,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		var yahoo_token_secret = Private.storage.session.get( 'yahoo_oauth_request_token_secret' );
 		var yahoo_verifier = Private.storage.session.get( 'yahoo_oauth_request_verifier' );
 		if( 'undefined' !== typeof yahoo_token && null !== yahoo_token && 'undefined' !== typeof yahoo_verifier && null !== yahoo_verifier ) {
+			Private.publish( 'verifying', { service: 'yahoo', 'oauth_token': yahoo_token, 'oauth_verifier': yahoo_verifier } );
 			Private.do_confirm( 'yahoo', { 'oauth_token': yahoo_token, 'oauth_token_secret': yahoo_token_secret, 'oauth_verifier': yahoo_verifier } );
 			Private.storage.session.delete( 'yahoo_oauth_request_token' );
 			Private.storage.session.delete( 'yahoo_oauth_request_token_secret' );
@@ -1413,6 +3082,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		var linkedin_token_secret = Private.storage.session.get( 'linkedin_oauth_request_token_secret' );
 		var linkedin_verifier = Private.storage.session.get( 'linkedin_oauth_request_verifier' );
 		if( 'undefined' !== typeof linkedin_token && null !== linkedin_token && 'undefined' !== typeof linkedin_verifier && null !== linkedin_verifier ) {
+			Private.publish( 'verifying', { service: 'linkedin', 'oauth_token': linkedin_token, 'oauth_verifier': linkedin_verifier } );
 			Private.do_confirm( 'linkedin', { 'oauth_token': linkedin_token, 'oauth_token_secret': linkedin_token_secret, 'oauth_verifier': linkedin_verifier } );
 			Private.storage.session.delete( 'linkedin_oauth_request_token' );
 			Private.storage.session.delete( 'linkedin_oauth_request_token_secret' );
@@ -1430,6 +3100,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		
 		if( 'undefined' !== typeof url_vars.code && 'facebook' === url_vars.service ) {
 			Private.storage.session.set( 'facebook_code', url_vars.code );
+			Private.publish( 'verified', { service: 'facebook', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}	
 		
@@ -1437,21 +3108,25 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			if( 'tumblr' === url_vars.service ) {
 				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 
 			} else if( 'yahoo' === url_vars.service ) {
 				Private.storage.session.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.publish( 'verified', { service: 'yahoo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
 			} else if( 'linkedin' === url_vars.service ) {
 				Private.storage.session.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.publish( 'verified', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
-			}else {
+			} else if( 'twitter' === url_vars.servie ) {
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.publish( 'verified', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 			}
 		}
@@ -1464,22 +3139,20 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 
 		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
 			Private.storage.session.set( 'github_code', url_vars.code );
+			Private.publish( 'verified', { service: 'github', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}	
 		
 		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
 			Private.storage.session.set( 'foursquare_code', url_vars.code );
+			Private.publish( 'verified', { service: 'foursquare', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
 
-		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
-			Private.storage.session.set( 'foursquare_code', url_vars.code );
-			Private.state.replaceCurrent( '/', 'home' );
-		}	
-		
 		if( 'undefined' !== typeof url_vars.code && 'google' === url_vars.service ) {
 			Private.storage.session.set( 'google_code', url_vars.code );
+			Private.publish( 'verified', { service: 'google', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
@@ -1508,17 +3181,10 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			}
 		}
 
+		Private.publish( 'status', { status: statuses } );
+		
 		return statuses;
 
-	}
-
-	Private.connected = function( on_or_off ) {
-		var frag = jQuery( '#connectivity_status' );
-		if( true === on_or_off && frag.hasClass( 'black_circle_icon' ) ) {
-			frag.removeClass( 'black_circle_icon' ).addClass( 'white_circle_icon' );
-		} else if( false === on_or_off && frag.hasClass( 'white_circle_icon' ) ) {
-			frag.removeClass( 'white_circle_icon' ).addClass( 'black_circle_icon' );
-		}
 	}
 
 	/* Facebook */
@@ -1528,9 +3194,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 		}
 		if( 'undefined' !== typeof data.logout_url || 'undefined' !== typeof data.logout ) {
 			if( null === data.logout_url ) {
-				console.log( 'logged out of ' + data.service );
-				//toggle status indicator
-				//delete session storage
+				Private.unsession( 'facebook' );
 				Private.storage.session.delete( 'facebook_access_token' );
 				Private.update();
 				Private.state.replaceCurrent( '/', 'home' );
@@ -1542,6 +3206,7 @@ Private.yahoo.handle_confirm = function( params, on_success, on_error ) {
 			//
 			console.log('hadling facebook login');
 			window.location = data.login_url;
+
 		} else if( 'facebook' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			var on_success = function() {
