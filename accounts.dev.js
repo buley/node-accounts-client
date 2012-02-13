@@ -885,14 +885,15 @@ var Accounts = ( function() {
 		
 		for( attr in options ) {
 			for( attr2 in options[ attr ] ) {
-
-				val = options[ attr ][ attr2 ];
 				if( 'undefined' === typeof vals[ attr2 ] ) {
 					vals[ attr2 ] = {};
 				}
-				vals[ attr2 ][ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : ( vals[ val ] + 1 );
-				if( vals[ attr2 ][ val ] > maxes[ attr2 ] ) {
-					maxes[ attr2 ] = vals[ attr2 ][ val ];
+				val = options[ attr ][ attr2 ];
+				if( null !== val ) {
+					vals[ attr2 ][ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : ( vals[ val ] + 1 );
+					if( vals[ attr2 ][ val ] > maxes[ attr2 ] ) {
+						maxes[ attr2 ] = vals[ attr2 ][ val ];
+					}
 				}
 			}
 		}
