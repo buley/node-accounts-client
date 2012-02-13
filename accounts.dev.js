@@ -1091,40 +1091,54 @@ var Accounts = ( function() {
 
 
 	Private.getUnifiedProfiles = function ( ) {
+
 		var services = Private.getActiveServices();
 		var x = 0; xlen = services.length, service;
 		var profiles = {};
+
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
 			profiles[ service ] = Private.getProfile( service );
 		}
+
 		return profiles;
+
 	};
 
 	Private.do_logout = function ( type ) {
+
 		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
+
 		var obj =  { 'request_type': 'account', 'command': 'logout', 'service': type };
 		obj[ 'access_token' ] = Private.getAccessToken( type );
+
 		Private.socket.emit( 'account', obj );
+
 	};
 
 	Private.do_login = function ( type ) {
+
 		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
+
 		Private.socket.emit( 'account', { 'request_type': 'account', 'command': 'login', 'service': type } );
+
 	};
 
 	Private.do_confirm = function ( type, params ) {
+
 		if( Public.prototype.disabled( type ) ) {
 			return false;
 		}
+
 		params.request_type = 'account';
 		params.command = 'confirm';
 		params.service = type;
 		Private.socket.emit( 'account', params );
+
 	};
 
 	/* Facebook */
@@ -1132,6 +1146,7 @@ var Accounts = ( function() {
 	Private.facebook.handle_confirm = function( params ) {
 
 		var data = null;
+
 		if( !!params.profile_data ) {
 			data =  params.profile_data || {};
 			data.service = 'facebook';
@@ -1140,15 +1155,22 @@ var Accounts = ( function() {
 		}	
 
 		var access_token = params.access_token;
+
 		if( !!access_token ) {
+
 			Private.storage.session.set( 'facebook_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'facebook', oauth_token: access_token, profile: data } );
+
 		}
+
 	};
+
+	/* Foursquare */
 
 	Private.foursquare.handle_confirm = function( params ) {
 
 		var data = null;
+		
 		if( params.profile_data ) {
 			data =  params.profile_data || {};
 			data.service = 'foursquare';	
@@ -1157,17 +1179,20 @@ var Accounts = ( function() {
 		}
 
 		var access_token = params.access_token;
+		
 		if( !!access_token ) {
 			Private.storage.session.set( 'foursquare_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'foursquare', oauth_token: access_token, profile: data } );
 		}
+
 	};
 
 	/* Google */
 
-	Private.google = Private.google || {};
 	Private.google.handle_confirm = function( params ) {
+		
 		var data = null;
+		
 		if( params.profile_data ) {
 			data = params.profile_data || {};
 			data.service = 'google';
@@ -1176,6 +1201,7 @@ var Accounts = ( function() {
 		}
 
 		var access_token = params.access_token;
+		
 		if( !!access_token ) {
 			Private.storage.session.set( 'google_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'google', oauth_token: access_token, profile: data } );
@@ -1183,23 +1209,29 @@ var Accounts = ( function() {
 
 	};
 
+	/* Twitter */
+
 	Private.twitter.handle_confirm = function( params ) {
 
 		var data = null;
 		if( !!params.profile_data ) {
+		
 			data =  params.profile_data || {};
 			data.service = 'twitter';
 			Private.publish( 'profile', { service: 'twitter', data: data } );
 			Private.setProfile( 'twitter', data );
+		
 		}
 
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
+		
 		if( !!access_token ) {
+		
 			Private.storage.session.set( 'twitter_access_token', access_token );
 			Private.storage.session.set( 'twitter_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'twitter', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
-			//Private.twitter.connect();
+		
 		}
 	};
 
@@ -1288,34 +1320,39 @@ var Accounts = ( function() {
 		
 		if( 'undefined' !== typeof url_vars.code && 'facebook' === url_vars.service ) {
 			Private.storage.session.set( 'facebook_code', url_vars.code );
-			Private.publish( 'verified', { service: 'facebook', 'code': url_vars.code } );
+			Private.publish( 'verifable', { service: 'facebook', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}	
 		
 		if( 'undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier ) {
 			if( 'tumblr' === url_vars.service ) {
+
 				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
+				Private.publish( 'verifiable', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 
 			} else if( 'yahoo' === url_vars.service ) {
+
 				Private.storage.session.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verified', { service: 'yahoo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
+				Private.publish( 'verifiable', { service: 'yahoo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
 			} else if( 'linkedin' === url_vars.service ) {
+
 				Private.storage.session.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verified', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
+				Private.publish( 'verifiable', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
 			} else { //twitter doesn't use service var TODO: fix?
+
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verified', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
+				Private.publish( 'verifiable', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
+
 			}
 		}
 		
@@ -1327,20 +1364,19 @@ var Accounts = ( function() {
 
 		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
 			Private.storage.session.set( 'github_code', url_vars.code );
-			Private.publish( 'verified', { service: 'github', 'code': url_vars.code } );
+			Private.publish( 'verifiable', { service: 'github', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}	
 		
 		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
 			Private.storage.session.set( 'foursquare_code', url_vars.code );
-			Private.publish( 'verified', { service: 'foursquare', 'code': url_vars.code } );
+			Private.publish( 'verifiable', { service: 'foursquare', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
-
 		if( 'undefined' !== typeof url_vars.code && 'google' === url_vars.service ) {
 			Private.storage.session.set( 'google_code', url_vars.code );
-			Private.publish( 'verified', { service: 'google', 'code': url_vars.code } );
+			Private.publish( 'verifiable', { service: 'google', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
