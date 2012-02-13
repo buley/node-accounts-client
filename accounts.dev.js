@@ -974,7 +974,7 @@ var Accounts = ( function() {
 	Private.removeNulls = function( options ) {
 		var opts = {}, attr;
 		for( attr in options ) {
-			if( 'undefined' !== typeof options[ attr ] || null !== options[ attr ] ) {
+			if( 'undefined' !== typeof options[ attr ] && null !== options[ attr ] ) {
 				opts[ attr ] = options[ attr ];
 			}
 		}
