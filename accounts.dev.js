@@ -701,11 +701,13 @@ var Accounts = ( function() {
 						profile_url = profile.publicProfileUrl;
 						break;
 					case 'tumblr':
+						profile_url = "http://" + profile.name + ".tumblr.com/";
 						break;
 					case 'twitter': 
 						profile_url = "http://twitter.com/#!/" + profile.screen_name;
 						break;
 					case 'yahoo':
+						profile_url = profile.profileUrl;
 						break;
 					default:
 						break;
