@@ -389,7 +389,7 @@ var Accounts = ( function() {
 			case 'twitter': 
 				access_token = Private.storage.session.get( 'twitter_access_token' );
 				break;
-			case 'facebook': 
+			case 'foursquare': 
 				access_token = Private.storage.session.get( 'foursquare_access_token' );
 				break;
 			case 'google': 
@@ -435,7 +435,7 @@ var Accounts = ( function() {
 			case 'twitter': 
 				access_token_secret = Private.storage.session.get( 'twitter_access_token_secret' );
 				break;
-			case 'facebook': 
+			case 'foursquare': 
 				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
 				break;
 			case 'google': 
