@@ -847,7 +847,7 @@ var Accounts = ( function() {
 			for( attr2 in options[ attr ] ) {
 
 				val = options[ attr ][ attr2 ];
-				vals[ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : vals[ val ] + 1;
+				vals[ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : ( vals[ val ] + 1 );
 				if( vals[ val ] > maxes[ attr2 ] ) {
 					maxes[ attr2 ] = vals[ val ];
 				}
