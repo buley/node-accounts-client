@@ -695,6 +695,7 @@ var Accounts = ( function() {
 						profile_url = profile.html_url;
 						break;
 					case 'google':
+						profile_url = profile.url;
 						break;
 					case 'linkedin':
 						profile_url = profile.publicProfileUrl;
