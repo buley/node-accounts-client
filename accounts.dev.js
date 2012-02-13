@@ -1449,7 +1449,7 @@ var Accounts = ( function() {
 
 		} else if( 'foursquare' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
-			Private.publish( 'unsession_redirect', { service: 'foursqaure', 'url': data.logout_url } );
+			Private.publish( 'confirm', { service: 'foursquare' } );
 			Private.foursquare.handle_confirm( data );
 
 		} else if( 'foursquare' === data.service && 'account' === data.response_type  && 'undefined' !== typeof data.connect_status ) {
@@ -1490,44 +1490,28 @@ var Accounts = ( function() {
 			
 			if( 'connected' === data.connect_status ) {
 
-				if( !!Private.debug ) {
-					console.log('Confirmed Google');	
-
-				}
+				Private.publish( 'confirmed', { service: 'google' } );
 
 			} else {
 
-				Private.storage.session.delete( 'google_access_token' );
-				Private.update();	
-
-				if( !!Private.debug ) {
-					console.log('Failed to confirm Google');
-				}
+				Private.unsession( 'google' );
 
 			}
 		
 		} else if( 'google' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
-			var on_success = function() {
-				Private.update();	
-			}
-		
-			var on_error = function() {
-				Private.update();
-			}	
+			Private.unsession( 'google' );
 
-			}
+		}
 	};
 
 	Private.google.connect = function() {
 		Private.connect( 'google', 2 );	
 	};
 
-
 	/* Yahoo */
 	Private.yahoo = Private.yahoo || {};
 	Private.yahoo.connect = function() {};
-
 
 	Private.yahoo.handle_confirm = function( params ) {
 
@@ -1843,37 +1827,25 @@ var Accounts = ( function() {
 
 			Private.storage.session.set( 'yahoo_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'yahoo_oauth_request_token_secret', data.request_token_secret );
-			console.log( "TUMBL: " + JSON.stringify( data ) );
-			if( !!Private.debug ) {
-				console.log('hadling yahoo login', data.login_url);
-			}
-			
-			Private.publish( 'session_redirect', { service: '', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: '', 'url': data.login_url } );
+			Private.publish( 'session_redirect', { service: 'yahoo', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'yahoo', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
-				if( !!Private.debug ) {
-					console.log('Confirmed Yahoo');	
-				}
+				Private.publish( 'confirmed', { service: 'yahoo' } );
 
 			} else {
 
-				Private.storage.session.delete( 'yahoo_access_token' );
-				Private.storage.session.delete( 'yahoo_access_token_secret' );
-				Private.update();	
-				
-				if( !!Private.debug ) {
-					console.log('Failed to confirm Yahoo');
-				}
-
+				Private.unsession( 'yahoo' );
+			
 			}
 
 		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
+			Private.publish( 'confirm', { service: 'yahoo' } );
 			Private.yahoo.handle_confirm( data, on_success, on_error );	
 
 		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
@@ -1899,40 +1871,29 @@ var Accounts = ( function() {
 
 			Private.storage.session.set( 'github_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'github_oauth_request_token_secret', data.request_token_secret );
-			console.log( "TUMBL: " + JSON.stringify( data ) );
-			if( !!Private.debug ) {
-				console.log('hadling github login', data.login_url);
-			}
-			
-			Private.publish( 'session_redirect', { service: '', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: '', 'url': data.login_url } );
+			Private.publish( 'session_redirect', { service: 'github', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'githubt', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'github' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
-				if( !!Private.debug ) {
-					console.log('Confirmed Github');	
-				}
+				Private.publish( 'confirmed', { service: 'github' } );
 
 			} else {
 
-				Private.storage.session.delete( 'github_access_token' );
-				Private.storage.session.delete( 'github_access_token_secret' );
-				Private.update();	
-				
-				if( !!Private.debug ) {
-					console.log('Failed to confirm Github');
-				}
-
+				Private.unsession( 'github' );
+			
 			}
 
 		} else if( 'github' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
+			Private.publish( 'confirm', { service: 'github' } );
 			Private.github.handle_confirm( data );
 
 		} else if( 'github' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		
 			Private.unsession( 'github' );
 			Private.state.replaceCurrent( '/', 'home' );
 
@@ -1954,37 +1915,25 @@ var Accounts = ( function() {
 
 			Private.storage.session.set( 'tumblr_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'tumblr_oauth_request_token_secret', data.request_token_secret );
-			console.log( "TUMBL: " + JSON.stringify( data ) );
-			if( !!Private.debug ) {
-				console.log('hadling tumblr login', data.login_url);
-			}
-			
-			Private.publish( 'session_redirect', { service: '', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: '', 'url': data.login_url } );
+			Private.publish( 'session_redirect', { service: 'tumblr', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'tumblr', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
-				if( !!Private.debug ) {
-					console.log('Confirmed Tumblr');	
-				}
-
+				Private.publish( 'confirmed', { service: 'tumblr' } );
+			
 			} else {
 
-				Private.storage.session.delete( 'tumblr_access_token' );
-				Private.storage.session.delete( 'tumblr_access_token_secret' );
-				Private.update();	
-				
-				if( !!Private.debug ) {
-					console.log('Failed to confirm Tumblr');
-				}
+				Private.unsession( 'tumblr' );
 
 			}
 
 		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
+			Private.publish( 'confirm', { service: 'tumblr' } );
 			Private.tumblr.handle_confirm( data );
 
 		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
@@ -2001,38 +1950,32 @@ var Accounts = ( function() {
 	Private.twitter.account_request = function( data ) {
 
 		if( 'undefined' !== typeof data.logout_url ) {
+
 			private.publish( 'unsession', { service: 'twitter' } );
 			private.unsession( 'twitter' );
 			Private.state.replaceCurrent( '/', 'home' );
-		} else if( 'twitter' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
 
-			Private.publish( 'session_redirect', { service: '', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: '', 'url': data.login_url } );
+		} else if( 'twitter' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+			
+			Private.publish( 'session_redirect', { service: 'twitter', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'twitter', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'twitter' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
-				if( !!Private.debug ) {
-					console.log('Confirmed Twitter');	
-				}
-
+				Private.publish( 'confirmed', { service: 'twitter' } );
+			
 			} else {
 
-				Private.storage.session.delete( 'twitter_access_token' );
-				Private.storage.session.delete( 'twitter_access_token_secret' );
-
-				Private.update();	
-				
-				if( !!Private.debug ) {
-					console.log('Failed to confirm Twitter');
-				}
+				Private.unsession( 'twitter' );
 
 			}
 
 		} else if( 'twitter' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
+			Private.publish( 'confirm', { service: 'twitter' } );
 			Private.twitter.handle_confirm( data );
 
 		} else if( 'twitter' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
@@ -2058,32 +2001,25 @@ var Accounts = ( function() {
 
 			Private.storage.session.set( 'linkedin_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'linkedin_oauth_request_token_secret', data.request_token_secret );
-			Private.publish( 'session_redirect', { service: '', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: '', 'url': data.login_url } );
+			Private.publish( 'session_redirect', { service: 'linkedin', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'linkedin', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
-			
-				if( !!Private.debug ) {
-					console.log('Confirmed Linkedin');	
-				}
+
+				Private.publish( 'confirmed', { service: 'linkedin' } );
 
 			} else {
 
-				Private.storage.session.delete( 'linkedin_access_token' );
-				Private.storage.session.delete( 'linkedin_access_token_secret' );
-				Private.update();	
-				
-				if( !!Private.debug ) {
-					console.log('Failed to confirm Linkedin');
-				}
+				Private.unsession( 'linkedin' );
 
 			}
 
 		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
+			Private.publish( 'confirm', { service: 'linkedin' } );
 			Private.linkedin.handle_confirm( data );
 
 		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
