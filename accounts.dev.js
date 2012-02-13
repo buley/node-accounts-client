@@ -971,10 +971,20 @@ var Accounts = ( function() {
 
 	};
 
+	Private.removeNulls = function( options ) {
+		var opts = {}, attr;
+		for( attr in options ) {
+			if( 'undefined' !== typeof options[ attr ] || null !== options[ attr ] ) {
+				opts[ attr ] = options[ attr ];
+			}
+		}
+		return opts;
+	};
+
 	Private.getUnifiedProfile = function ( ) {
 		return {
-			'ids': Private.getProfileIds()
-			, 'profiles': Private.getProfileURLs()
+			'ids': Proviate.removeNulls( Private.getProfileIds() )
+			, 'profiles': Private.removeNulls( Private.getProfileURLs() )
 			, 'username': Private.unifyOptions( Private.getProfileUsernames() )
 			, 'email': Private.unifyOptions( Private.getProfileEmails() )
 			, 'display_name': Private.unifyOptionsAttributes( Private.getProfileDisplayNames() )
