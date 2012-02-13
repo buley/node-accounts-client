@@ -1169,7 +1169,7 @@ var Accounts = ( function() {
 
 	/* Yahoo */
 	Private.yahoo = Private.yahoo || {};
-	Private.yahoo.connect = function() {
+	Private.yahoo.connect = function() {};
 
 
 	Private.yahoo.handle_confirm = function( params ) {
