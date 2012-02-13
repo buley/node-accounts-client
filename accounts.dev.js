@@ -892,7 +892,7 @@ var Accounts = ( function() {
 		var attr, val, vals = {}, max = 0, max_service = null;
 		for( attr in options ) {
 			val = options[ attr ];
-			vals[ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : vals[ val ] + 1 );
+			vals[ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : ( vals[ val ] + 1 );
 			if( vals[ val ] > max ) {
 				max = vals[ val ];
 				max_service = attr;
