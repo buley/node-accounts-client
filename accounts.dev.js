@@ -1140,11 +1140,9 @@ var Accounts = ( function() {
 		}	
 
 		var access_token = params.access_token;
-		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
 			Private.storage.session.set( 'facebook_access_token', access_token );
-			Private.storage.session.set( 'facebook_access_token_secret', access_token_secret );
-			Private.publish( 'sessioned', { service: 'facebook', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
+			Private.publish( 'sessioned', { service: 'facebook', oauth_token: access_token, profile: data } );
 		}
 	};
 
@@ -1386,7 +1384,6 @@ var Accounts = ( function() {
 				Private.unsession( 'facebook' );
 				Private.state.replaceCurrent( '/', 'home' );
 			} else {
-				console.log('need to redirect');
 				Private.publish( 'unsession_redirect', { service: 'facebook', 'url': data.logout_url } );
 				Private.publish( 'redirect', { service: 'facebook', 'url': data.logout_url } );
 				window.location = data.logout_url;
@@ -1507,7 +1504,6 @@ var Accounts = ( function() {
 			Private.storage.session.set( 'yahoo_access_token', access_token );
 			Private.storage.session.set( 'yahoo_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'yahoo', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
-			//Private.yahoo.connect();
 		}
 	};
 
