@@ -1415,7 +1415,7 @@ var Accounts = ( function() {
 				Private.publish( 'verified', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
-			} else if( 'twitter' === url_vars.servie ) {
+			} else { //twitter doesn't use service var TODO: fix?
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
