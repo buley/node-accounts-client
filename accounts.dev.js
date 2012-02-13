@@ -569,9 +569,9 @@ var Accounts = ( function() {
 
 				switch( service ) {
 					case 'facebook':
-						birthdate.day = new Date( profile.birthdate ).getDate();
-						birthdate.month = new Date( profile.birthdate ).getMonth() + 1;
-						birthdate.year = new Date( profile.birthdate ).getFullYear();
+						birthdate.day = new Date( profile.birthday ).getDate();
+						birthdate.month = new Date( profile.birthday ).getMonth() + 1;
+						birthdate.year = new Date( profile.birthday ).getFullYear();
 						break;
 					case 'foursquare':
 						break;
