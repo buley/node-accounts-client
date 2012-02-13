@@ -983,11 +983,11 @@ var Accounts = ( function() {
 
 	Private.getUnifiedProfile = function ( ) {
 		return {
-			'ids': Proviate.removeNulls( Private.getProfileIds() )
+			'ids': Private.removeNulls( Private.getProfileIds() )
 			, 'profiles': Private.removeNulls( Private.getProfileURLs() )
 			, 'username': Private.unifyOptions( Private.getProfileUsernames() )
 			, 'email': Private.unifyOptions( Private.getProfileEmails() )
-			, 'display_name': Private.unifyOptionsAttributes( Private.getProfileDisplayNames() )
+			, 'name': Private.unifyOptionsAttributes( Private.getProfileDisplayNames() )
 			, 'birthdate': Private.unifyOptionsAttributes( Private.getProfileBirthdates() )
 			, 'gender': Private.unifyOptions( Private.getProfileGenders() )
 			, 'image': Private.unifyOptions( Private.getProfileImages() )
@@ -996,6 +996,23 @@ var Accounts = ( function() {
 			, 'url': Private.unifyOptions( Private.getProfilePersonalURLs() )
 		};
 	};
+
+	Private.getUnifiedOptions = function ( ) {
+		return {
+			'ids': Private.getProfileIds()
+			, 'profiles': Private.getProfileURLs()
+			, 'username': Private.getProfileUsernames()
+			, 'email': Private.getProfileEmails()
+			, 'name': Private.getProfileDisplayNames()
+			, 'birthdate': Private.getProfileBirthdates()
+			, 'gender': Private.getProfileGenders()
+			, 'image': Private.getProfileImages()
+			, 'location': Private.getProfileLocations()
+			, 'description': Private.getProfileDescriptions()
+			, 'url': Private.getProfilePersonalURLs()
+		};
+	};
+
 
 
 	Private.getUnifiedProfiles = function ( ) {
