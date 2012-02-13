@@ -1127,10 +1127,7 @@ var Accounts = ( function() {
 		Private.socket.emit( 'account', params );
 	};
 
-	Private.facebook = Private.facebook || {};
-	Private.facebook.connect = function() {
-		Private.connect( 'facebook', 2 );	
-	};
+	/* Facebook */
 
 	Private.facebook.handle_confirm = function( params ) {
 
@@ -1145,18 +1142,11 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			console.log('access token', access_token );
 			Private.storage.session.set( 'facebook_access_token', access_token );
 			Private.storage.session.set( 'facebook_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'facebook', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 	};
-
-	Private.foursquare = Private.foursquare || {};
-	Private.foursquare.connect = function() {
-		Private.connect( 'foursquare', 2 );	
-	};
-
 
 	Private.foursquare.handle_confirm = function( params ) {
 
@@ -1193,12 +1183,6 @@ var Accounts = ( function() {
 			Private.publish( 'sessioned', { service: 'google', oauth_token: access_token, profile: data } );
 		}
 
-	};
-
-
-	Private.twitter = Private.twitter || {};
-	Private.twitter.connect = function() {
-		Private.connect( 'twitter', 1 );	
 	};
 
 	Private.twitter.handle_confirm = function( params ) {
@@ -1505,13 +1489,7 @@ var Accounts = ( function() {
 		}
 	};
 
-	Private.google.connect = function() {
-		Private.connect( 'google', 2 );	
-	};
-
 	/* Yahoo */
-	Private.yahoo = Private.yahoo || {};
-	Private.yahoo.connect = function() {};
 
 	Private.yahoo.handle_confirm = function( params ) {
 
@@ -1535,11 +1513,6 @@ var Accounts = ( function() {
 
 	/* Linkedin */
 
-	Private.linkedin = Private.linkedin || {};
-	Private.linkedin.connect = function() {
-		Private.connect( 'linkedin', 1 );	
-	};
-
 	Private.linkedin.handle_confirm = function( params ) {
 		var data = null;
 		if( !!params.profile_data ) {
@@ -1561,11 +1534,6 @@ var Accounts = ( function() {
 
 
 	/* Tumblr */
-
-	Private.tumblr = Private.tumblr || {};
-	Private.tumblr.connect = function() {
-		Private.connect( 'tumblr', 1 );	
-	};
 
 	Private.tumblr.handle_confirm = function( params, on_success, on_error ) {
 
@@ -1589,12 +1557,6 @@ var Accounts = ( function() {
 
 	/* Github */
 
-	Private.github = Private.github || {};
-	Private.github.connect = function() {
-		Private.connect( 'github', 2 );	
-	};
-
-
 	Private.github.handle_confirm = function( params ) {
 
 		if( params.profile_data ) {
@@ -1614,11 +1576,7 @@ var Accounts = ( function() {
 
 	};
 
-
-	Private.twitter = Private.twitter || {};
-	Private.twitter.connect = function() {
-		Private.connect( 'twitter', 1 );	
-	};
+	/* Twitter */
 
 	Private.twitter.handle_confirm = function( params ) {
 
