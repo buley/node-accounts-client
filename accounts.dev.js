@@ -428,36 +428,41 @@ var Accounts = ( function() {
 		var attr, profile, id, profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
-			id = null;
-			switch( service ) {
-				case 'facebook':
-					id = parseInt( profile.id, 10 );
-					break;
-				case 'foursquare':
-					id = parseInt( profile.id, 10 );
-					break;
-				case 'github':
-					id = profile.id;
-					break;
-				case 'google':
-					id = parseInt( profile.id, 10 );
-					break;
-				case 'linkedin':
-					id = profile.id;
-					break;
-				case 'tumblr':
-					id = null;
-					break;
-				case 'twitter': 
-					id = parseInt( profile.id_str, 10 );
-					break;
-				case 'yahoo':
-					id = profile.guid;
-					break;
-				default:
-					break;
-			};
-			profiles[ service ] = id;
+			if( profile !== null ) {
+
+				id = null;
+				switch( service ) {
+					case 'facebook':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'foursquare':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'github':
+						id = profile.id;
+						break;
+					case 'google':
+						id = parseInt( profile.id, 10 );
+						break;
+					case 'linkedin':
+						id = profile.id;
+						break;
+					case 'tumblr':
+						id = null;
+						break;
+					case 'twitter': 
+						id = parseInt( profile.id_str, 10 );
+						break;
+					case 'yahoo':
+						id = profile.guid;
+						break;
+					default:
+						break;
+				};
+				profiles[ service ] = id;
+			} else {
+				profiles[ service ] = null;
+			}
 		};
 		return profiles;
 	};
@@ -468,39 +473,42 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			names = { display: null, first: null, last: null };
-			switch( service ) {
-				case 'facebook':
-					names.display = profile.name;
-					names.first = profile.first_name;
-					names.last = profile.last_name;
-					break;
-				case 'foursquare':
-					names.first = profile.firstName;
-					names.last = profile.lastName;
-					break;
-				case 'github':
-					names.display = profile.name;
-					break;
-				case 'google':
-					names.display = profile.displayName;
-					names.first = profile.name.givenName;
-					names.last = profile.name.familyName;
-					break;
-				case 'linkedin':
-					names.display = profile.formattedName;
-					names.first = profile.firstName;
-					names.last = profile.lastName;
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					names.display = profile.name;
-					break;
-				case 'yahoo':
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						names.display = profile.name;
+						names.first = profile.first_name;
+						names.last = profile.last_name;
+						break;
+					case 'foursquare':
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'github':
+						names.display = profile.name;
+						break;
+					case 'google':
+						names.display = profile.displayName;
+						names.first = profile.name.givenName;
+						names.last = profile.name.familyName;
+						break;
+					case 'linkedin':
+						names.display = profile.formattedName;
+						names.first = profile.firstName;
+						names.last = profile.lastName;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						names.display = profile.name;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = names;
 		};
 		return profiles;
@@ -513,36 +521,39 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			gender = null;
-			switch( service ) {
-				case 'facebook':
-					gender = profile.gender;
-					break;
-				case 'foursquare':
-					gender = profile.gender;
-					break;
-				case 'github':
-					break;
-				case 'google':
-					gender = profile.gender;
-					break;
-				case 'linkedin':
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					break;
-				case 'yahoo':
-					if( "M" === profile.gender ) {
-						gender = "male";
-					} else if( "F" === profile.gender ) {
-						gender = "female";
-					} else {
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
 						gender = profile.gender;
-					}
-					break;
-				default:
-					break;
-			};
+						break;
+					case 'foursquare':
+						gender = profile.gender;
+						break;
+					case 'github':
+						break;
+					case 'google':
+						gender = profile.gender;
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						if( "M" === profile.gender ) {
+							gender = "male";
+						} else if( "F" === profile.gender ) {
+							gender = "female";
+						} else {
+							gender = profile.gender;
+						}
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = gender;
 		};
 		return profiles;
@@ -554,30 +565,33 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			birthdate = { day: null, month: null, year: null };
-			switch( service ) {
-				case 'facebook':
-					birthdate.day = new Date( profile.birthdate ).getDate();
-					birthdate.month = new Date( profile.birthdate ).getMonth() + 1;
-					birthdate.year = new Date( profile.birthdate ).getFullYear();
-					break;
-				case 'foursquare':
-					break;
-				case 'github':
-					break;
-				case 'google':
-					break;
-				case 'linkedin':
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					break;
-				case 'yahoo':
-					birthdate.year = profile.birthYear;
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						birthdate.day = new Date( profile.birthdate ).getDate();
+						birthdate.month = new Date( profile.birthdate ).getMonth() + 1;
+						birthdate.year = new Date( profile.birthdate ).getFullYear();
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						birthdate.year = profile.birthYear;
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = birthdate;
 		};
 		return profiles;
@@ -589,32 +603,35 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			image = null;
-			switch( service ) {
-				case 'facebook':
-					break;
-				case 'foursquare':
-					image = profile.photo;
-					break;
-				case 'github':
-					image = profile.avatar_url;
-					break;
-				case 'google':
-					image = profile.image.url;
-					break;
-				case 'linkedin':
-					image = profile.pictureUrl;
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					image = profile.profile_image_url;
-					break;
-				case 'yahoo':
-					image = profile.image.imageUrl;
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						image = profile.photo;
+						break;
+					case 'github':
+						image = profile.avatar_url;
+						break;
+					case 'google':
+						image = profile.image.url;
+						break;
+					case 'linkedin':
+						image = profile.pictureUrl;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						image = profile.profile_image_url;
+						break;
+					case 'yahoo':
+						image = profile.image.imageUrl;
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = image;
 		};
 		return profiles;
@@ -626,29 +643,32 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			personal_url = null;
-			switch( service ) {
-				case 'facebook':
-					personal_url = profile.website;
-					break;
-				case 'foursquare':
-					break;
-				case 'github':
-					personal_url = profile.blog;
-					break;
-				case 'google':
-					break;
-				case 'linkedin':
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					personal_url = profile.url;
-					break;
-				case 'yahoo':
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						personal_url = profile.website;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						personal_url = profile.blog;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						personal_url = profile.url;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = personal_url;
 		};
 		return profiles;
@@ -662,31 +682,34 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			profile_url = null;
-			switch( service ) {
-				case 'facebook':
-					profile_url = profile.link;
-					break;
-				case 'foursquare':
-					profile_url = profile.canonicalUrl;
-					break;
-				case 'github':
-					profile_url = profile.html_url;
-					break;
-				case 'google':
-					break;
-				case 'linkedin':
-					profile_url = profile.publicProfileUrl;
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					profile_url = "http://twitter.com/#!/" + profile.screen_name;
-					break;
-				case 'yahoo':
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						profile_url = profile.link;
+						break;
+					case 'foursquare':
+						profile_url = profile.canonicalUrl;
+						break;
+					case 'github':
+						profile_url = profile.html_url;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						profile_url = profile.publicProfileUrl;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						profile_url = "http://twitter.com/#!/" + profile.screen_name;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = profile_url;
 		};
 		return profiles;
@@ -698,29 +721,31 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			email = null;
-			switch( service ) {
-				case 'facebook':
-					email = profile.email;
-					break;
-				case 'foursquare':
-					email = profile.contact.email;
-					break;
-				case 'github':
-					email = profile.email;
-					break;
-				case 'google':
-					break;
-				case 'linkedin':
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					break;
-				case 'yahoo':
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+				switch( service ) {
+					case 'facebook':
+						email = profile.email;
+						break;
+					case 'foursquare':
+						email = profile.contact.email;
+						break;
+					case 'github':
+						email = profile.email;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			}
 			profiles[ service ] = email;
 		};
 		return profiles;
@@ -733,31 +758,35 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			username = null;
-			switch( service ) {
-				case 'facebook':
-					username = profile.username;
-					break;
-				case 'foursquare':
-					break;
-				case 'github':
-					username = profile.login;
-					break;
-				case 'google':
-					break;
-				case 'linkedin':
-					break;
-				case 'tumblr':
-					username = profile.name;
-					break;
-				case 'twitter': 
-					username = profile.screen_name;
-					break;
-				case 'yahoo':
-					username = profile.nickname;
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						username = profile.username;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						username = profile.login;
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						username = profile.name;
+						break;
+					case 'twitter': 
+						username = profile.screen_name;
+						break;
+					case 'yahoo':
+						username = profile.nickname;
+						break;
+					default:
+						break;
+				};
+
+			}
 			profiles[ service ] = username;
 		};
 		return profiles;
@@ -769,29 +798,33 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			description = null;
-			switch( service ) {
-				case 'facebook':
-					break;
-				case 'foursquare':
-					break;
-				case 'github':
-					break;
-				case 'google':
-					description = profile.bio;
-					break;
-				case 'linkedin':
-					description = profile.headline;
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					description = profile.description;
-					break;
-				case 'yahoo':
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						description = profile.bio;
+						break;
+					case 'linkedin':
+						description = profile.headline;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						description = profile.description;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
 			profiles[ service ] = description;
 		};
 		return profiles;
@@ -803,32 +836,36 @@ var Accounts = ( function() {
 		for( service in services ) {
 			profile = services[ service ];
 			location = null;
-			switch( service ) {
-				case 'facebook':
-					location = profile.location.name;
-					break;
-				case 'foursquare':
-					location = profile.homeCity;
-					break;
-				case 'github':
-					location = profile.location;
-					break;
-				case 'google':
-					location = profile.bio;
-					break;
-				case 'linkedin':
-					location = profile.location.name;
-					break;
-				case 'tumblr':
-					break;
-				case 'twitter': 
-					location = profile.location;
-					break;
-				case 'yahoo':
-					break;
-				default:
-					break;
-			};
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						location = profile.location.name;
+						break;
+					case 'foursquare':
+						location = profile.homeCity;
+						break;
+					case 'github':
+						location = profile.location;
+						break;
+					case 'google':
+						location = profile.bio;
+						break;
+					case 'linkedin':
+						location = profile.location.name;
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						location = profile.location;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
 			profiles[ service ] = location;
 		};
 		return profiles;
