@@ -1122,6 +1122,10 @@ var Accounts = ( function() {
 	};
 
 	Private.do_logout = function ( type ) {
+		return Private.unsession( type );
+	};
+	
+	Private.unsession = function ( type ) {
 
 		if( Public.prototype.disabled( type ) ) {
 			return false;
@@ -1134,7 +1138,11 @@ var Accounts = ( function() {
 
 	};
 
-	Private.do_login = function ( type ) {
+	Private.do_login = function( type ) {
+		return Private.session( type );
+	};
+	
+	Private.session = function ( type ) {
 
 		if( Public.prototype.disabled( type ) ) {
 			return false;
@@ -2110,18 +2118,18 @@ var Accounts = ( function() {
 	/* Session Storage */
 
 	Private.storage.session = {};
-	Private.session = sessionStorage;
+	Private.sessionStorage = sessionStorage;
 
 	Private.storage.session.set = function( set_key, set_value ) {
-		return Private.session.setItem( Private.prefix + set_key, set_value );
+		return Private.sessionStorage.setItem( Private.prefix + set_key, set_value );
 	};
 		
 	Private.storage.session.delete = function( key ) {
-		return Private.session.removeItem( Private.prefix + key );
+		return Private.sessionStorage.removeItem( Private.prefix + key );
 	};
 		
 	Private.storage.session.get = function( get_key ) {
-		return Private.session.getItem( Private.prefix + get_key );
+		return Private.sessionStorage.getItem( Private.prefix + get_key );
 	};
 
 	Private.storage.session.set_batch = function( dictionary ) {
