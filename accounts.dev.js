@@ -84,6 +84,22 @@ var Accounts = ( function() {
 
 	};
 
+	Public.prototype.display = function( slug ) {
+		var result = slug;
+		switch( slug ) {
+			case 'facebook': result = 'Facebook'; break;
+			case 'twitter': result = 'Twitter'; break;
+			case 'github': result = 'Github'; break;
+			case 'google': result = 'Google'; break;
+			case 'tumblr': result = 'Tumblr'; break;
+			case 'yahoo': result = 'Yahoo'; break;
+			case 'foursquare': result = 'Foursquare'; break;
+			case 'linkedin': result = 'Linkedin'; break;
+			default: break;
+		};
+		return result;
+	};
+
 	Public.prototype.enable = function( service ) {
 		Private.publish( 'enable', service );
 		if( 'undefined' === typeof service || null === service ) {
