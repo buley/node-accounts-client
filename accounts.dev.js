@@ -1143,8 +1143,11 @@ var Accounts = ( function() {
 
 		var obj =  { 'request_type': 'account', 'command': 'logout', 'service': type };
 		obj[ 'access_token' ] = Private.getAccessToken( type );
+	
+		if( null !== obj.access_token && 'undefined' !== typeof obj.access_token ) {
+			Private.socket.emit( 'account', obj );
+		}
 
-		Private.socket.emit( 'account', obj );
 
 	};
 
@@ -1902,10 +1905,6 @@ var Accounts = ( function() {
 			if( 'connected' === data.connect_status ) {
 			
 				Private.publish( 'confirmed', { service: 'yahoo' } );
-
-			} else {
-
-				Private.unsession( 'yahoo' );
 			
 			}
 
@@ -1916,7 +1915,6 @@ var Accounts = ( function() {
 
 		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
 
-			Private.unsession( 'yahoo' );
 			Private.state.replaceCurrent( '/', 'home' );
 
 		}
@@ -1945,9 +1943,6 @@ var Accounts = ( function() {
 
 			if( 'connected' === data.connect_status ) {
 				Private.publish( 'confirmed', { service: 'windows' } );
-
-			} else {
-				Private.unsession( 'windows' );
 			}
 
 		} else if( 'windows' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
@@ -1957,7 +1952,6 @@ var Accounts = ( function() {
 
 		} else if( 'windows' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
 		
-			Private.unsession( 'windows' );
 			Private.state.replaceCurrent( '/', 'home' );
 
 		}
