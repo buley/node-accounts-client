@@ -1306,6 +1306,13 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'google_code' );
 		}
 
+		var windows_code = Private.storage.session.get( 'windows_code' );
+		if( 'undefined' !== typeof windows_code && null !== windows_code  ) {
+			Private.publish( 'verifying', { service: 'windows', 'code': windows_code } );
+			Private.do_confirm( 'windows', { 'code': windows_code } );
+			Private.storage.session.delete( 'windows_code' );
+		}
+
 		var github_code = Private.storage.session.get( 'github_code' );
 		if( 'undefined' !== typeof github_code && null !== github_code  ) {
 			Private.publish( 'verifying', { service: 'github', 'code': github_code } );
