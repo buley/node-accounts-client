@@ -1396,6 +1396,12 @@ var Accounts = ( function() {
 			}	
 		}
 
+		if( 'undefined' !== typeof url_vars.code && 'windows' === url_vars.service ) {
+			Private.storage.session.set( 'windows_code', url_vars.code );
+			Private.publish( 'verifiable', { service: 'windows', 'code': url_vars.code } );
+			Private.state.replaceCurrent( '/', 'home' );
+		}			
+
 		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
 			Private.storage.session.set( 'github_code', url_vars.code );
 			Private.publish( 'verifiable', { service: 'github', 'code': url_vars.code } );
@@ -1932,7 +1938,7 @@ var Accounts = ( function() {
 			Private.storage.session.set( 'windows_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'windows_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'windows', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: 'windowst', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'windows', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'windows' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
