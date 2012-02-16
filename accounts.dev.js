@@ -8,7 +8,7 @@ var Accounts = ( function() {
 	Private.connected = false;
 	Private.prefix = '_acc_';
 
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'foursquare', 'yahoo',  'github', 'tumblr' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ];
 	Private.activeServices = [];
 
 	var z = 0, zlen = Private.allServices.length;
@@ -95,6 +95,7 @@ var Accounts = ( function() {
 			case 'yahoo': result = 'Yahoo'; break;
 			case 'foursquare': result = 'Foursquare'; break;
 			case 'linkedin': result = 'Linkedin'; break;
+			case 'windows': result = 'Windows Live'; break;
 			default: break;
 		};
 		return result;
@@ -357,6 +358,9 @@ var Accounts = ( function() {
 			Private.linkedin.account_request( response );
 		}
 
+		if( 'windows' === response.service && 'account' === response.response_type ) {
+			Private.windows.account_request( response );
+		}
 
 	};
 
@@ -415,6 +419,9 @@ var Accounts = ( function() {
 			case 'google': 
 				access_token = Private.storage.session.get( 'google_access_token' );
 				break;
+			case 'windows': 
+				access_token = Private.storage.session.get( 'windows_access_token' );
+				break;
 			case 'tumblr': 
 				access_token = Private.storage.session.get( 'tumblr_access_token' );
 				break;
@@ -463,6 +470,9 @@ var Accounts = ( function() {
 				break;
 			case 'tumblr': 
 				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
+				break;
+			case 'windows': 
+				access_token_secret = Private.storage.session.get( 'windows_access_token_secret' );
 				break;
 			case 'github': 
 				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
@@ -1611,6 +1621,28 @@ var Accounts = ( function() {
 
 	};
 
+	/* Windows Live */
+
+	Private.windows.handle_confirm = function( params ) {
+
+		if( params.profile_data ) {
+			var data =  params.profile_data || {};
+			data.service = 'windows';	
+			Private.publish( 'profile', { service: 'windows', data: data } );
+			Private.setProfile( 'windows', data );
+		}
+
+		var access_token = params.access_token;
+
+		if( !!access_token ) {
+			console.log('access token', access_token );
+			Private.publish( 'sessioned', { service: 'windows', oauth_token: access_token, profile: data } );
+			Private.storage.session.set( 'windows_access_token', access_token );
+		}
+
+	};
+
+
 	/* Github */
 
 	Private.github.handle_confirm = function( params ) {
@@ -1686,6 +1718,13 @@ var Accounts = ( function() {
 			Private.publish( 'verifying', { service: 'google', 'code': google_code } );
 			Private.do_confirm( 'google', { 'code': google_code } );
 			Private.storage.session.delete( 'google_code' );
+		}
+
+		var windows_code = Private.storage.session.get( 'windows_code' );
+		if( 'undefined' !== typeof windows_code && null !== windows_code  ) {
+			Private.publish( 'verifying', { service: 'windows', 'code': windows_code } );
+			Private.do_confirm( 'windows', { 'code': windows_code } );
+			Private.storage.session.delete( 'windows_code' );
 		}
 
 		var github_code = Private.storage.session.get( 'github_code' );
@@ -1777,6 +1816,12 @@ var Accounts = ( function() {
 			}	
 		}
 
+		if( 'undefined' !== typeof url_vars.code && 'windows' === url_vars.service ) {
+			Private.storage.session.set( 'windows_code', url_vars.code );
+			Private.publish( 'verified', { service: 'windows', 'code': url_vars.code } );
+			Private.state.replaceCurrent( '/', 'home' );
+		}	
+		
 		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
 			Private.storage.session.set( 'github_code', url_vars.code );
 			Private.publish( 'verified', { service: 'github', 'code': url_vars.code } );
@@ -1809,6 +1854,7 @@ var Accounts = ( function() {
 			, 'yahoo': 'yahoo_access_token'
 			, 'tumblr': 'tumblr_access_token'
 			, 'linkedin': 'linkedin_access_token'
+			, 'windows': 'windows_access_token'
 		};
 
 		var statuses = {};
@@ -1870,6 +1916,48 @@ var Accounts = ( function() {
 		}
 
 	}
+
+	/* Windows Live */
+
+	Private.windows.account_request = function( data ) {
+
+		if( 'undefined' !== typeof data.logout_url ) {
+
+			Private.publish( 'unsession', { service: 'windows' } );
+			Private.unsession( 'windows' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		} else if( 'windows' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+
+			Private.storage.session.set( 'windows_oauth_request_token', data.request_token );
+			Private.storage.session.set( 'windows_oauth_request_token_secret', data.request_token_secret );
+			Private.publish( 'session_redirect', { service: 'windows', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'windowst', 'url': data.login_url } );
+			window.location = data.login_url;
+
+		} else if( 'windows' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+
+			if( 'connected' === data.connect_status ) {
+				Private.publish( 'confirmed', { service: 'windows' } );
+
+			} else {
+				Private.unsession( 'windows' );
+			}
+
+		} else if( 'windows' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+
+			Private.publish( 'confirm', { service: 'windows' } );
+			Private.windows.handle_confirm( data );
+
+		} else if( 'windows' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		
+			Private.unsession( 'windows' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		}
+
+	}
+
 
 	/* Github */
 
