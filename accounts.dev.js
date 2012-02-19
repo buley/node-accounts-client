@@ -1916,7 +1916,7 @@ var Accounts = ( function() {
 		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'authorized' === data.account_status ) {
 
 			Private.publish( 'confirm', { service: 'yahoo' } );
-			Private.yahoo.handle_confirm( data, on_success, on_error );	
+			Private.yahoo.handle_confirm( data );
 
 		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
 
