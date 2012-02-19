@@ -1537,40 +1537,38 @@ var Accounts = ( function() {
 
 	/* Google */
 
-	Private.google = Private.google || {};
-
 	Private.google.account_request = function( data ) {
 
 		if( 'undefined' !== typeof data.logout_url ) {
-
-                        Private.publish( 'unsession', { service: 'google' } );
+			Private.publish( 'unsession', { service: 'google' } );	
 			Private.unsession( 'google' );
 			Private.state.replaceCurrent( '/', 'home' );
-
 		} else if( 'google' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
 
 			Private.publish( 'session_redirect', { service: 'google', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'google', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'google' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
-			
-			if( 'connected' === data.connect_status ) {
-
-				Private.publish( 'confirmed', { service: 'google' } );
-
-			} else {
-
-				Private.unsession( 'google' );
-
-			}
-		
 		} else if( 'google' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
+			Private.publish( 'confirm', { service: 'google' } );
+			Private.google.handle_confirm( data );
+
+		} else if( 'google' === data.service && 'account' === data.response_type  && 'undefined' !== typeof data.connect_status ) {
+			if( 'connected' === data.connect_status ) {
+				Private.publish( 'confirmed', { service: 'google' } );
+			} else {
+				Private.unsession( 'google' );
+			}
+
+		} else if( 'google' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+
 			Private.unsession( 'google' );
+			Private.state.replaceCurrent( '/', 'home' );
 
 		}
-	};
+
+	}
 
 	/* Yahoo */
 
