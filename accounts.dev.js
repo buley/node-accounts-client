@@ -1554,7 +1554,7 @@ var Accounts = ( function() {
 			Private.publish( 'confirm', { service: 'google' } );
 			Private.google.handle_confirm( data );
 
-		} else if( 'google' === data.service && 'account' === data.response_type  && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'google' === data.service && 'account' === data.response_type && 'authorized' === tydata.account_status ) {
 			if( 'connected' === data.connect_status ) {
 				Private.publish( 'confirmed', { service: 'google' } );
 			} else {
