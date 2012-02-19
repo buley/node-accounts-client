@@ -699,7 +699,7 @@ var Accounts = ( function() {
 					case 'twitter': 
 						break;
 					case 'windows':
-						birthdate.day = profile_birth_day;
+						birthdate.day = profile.birth_day;
 						birthdate.month = profile.birth_month;
 						birthdate.year = profile.birth_year;
 						break;
