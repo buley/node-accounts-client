@@ -551,6 +551,9 @@ var Accounts = ( function() {
 					case 'tumblr':
 						id = null;
 						break;
+					case 'windows':
+						id = profile.id;
+						break;	
 					case 'twitter': 
 						id = parseInt( profile.id_str, 10 );
 						break;
@@ -607,6 +610,11 @@ var Accounts = ( function() {
 						break;
 					case 'yahoo':
 						break;
+					case 'windows':
+						names.display = profile.name;
+						names.first = profile.first_name;
+						names.last = profile.last_name;
+						break;		
 					default:
 						break;
 				};
@@ -643,6 +651,9 @@ var Accounts = ( function() {
 						break;
 					case 'twitter': 
 						break;
+					case 'windows':
+						gender = profile.gender;
+						break;					
 					case 'yahoo':
 						if( "M" === profile.gender ) {
 							gender = "male";
@@ -687,6 +698,11 @@ var Accounts = ( function() {
 						break;
 					case 'twitter': 
 						break;
+					case 'windows':
+						birthdate.day = profile_birth_day;
+						birthdate.month = profile.birth_month;
+						birthdate.year = profile.birth_year;
+						break;
 					case 'yahoo':
 						birthdate.year = profile.birthYear;
 						break;
@@ -726,6 +742,8 @@ var Accounts = ( function() {
 						break;
 					case 'twitter': 
 						image = profile.profile_image_url;
+						break;
+					case 'windows':
 						break;
 					case 'yahoo':
 						image = profile.image.imageUrl;
@@ -811,6 +829,9 @@ var Accounts = ( function() {
 					case 'yahoo':
 						profile_url = profile.profileUrl;
 						break;
+					case 'windows':
+						profile_url = profile.link;
+						break;
 					default:
 						break;
 				};
@@ -846,6 +867,9 @@ var Accounts = ( function() {
 					case 'twitter': 
 						break;
 					case 'yahoo':
+						break;
+					case 'windows':
+						email = profile.emails.preferred;
 						break;
 					default:
 						break;
@@ -883,6 +907,8 @@ var Accounts = ( function() {
 						break;
 					case 'twitter': 
 						username = profile.screen_name;
+						break;
+					case 'windows':
 						break;
 					case 'yahoo':
 						username = profile.nickname;
@@ -922,6 +948,8 @@ var Accounts = ( function() {
 						break;
 					case 'twitter': 
 						description = profile.description;
+						break;
+					case 'windows':
 						break;
 					case 'yahoo':
 						break;
@@ -964,6 +992,8 @@ var Accounts = ( function() {
 					case 'twitter': 
 						location = profile.location;
 						break;
+					case 'windows':
+						break;
 					case 'yahoo':
 						break;
 					default:
@@ -975,6 +1005,48 @@ var Accounts = ( function() {
 		};
 		return profiles;
 	};
+
+
+	Private.getProfileLocale = function () {
+		var services = Private.getUnifiedProfiles();
+		var attr, profile, locale, profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			locale = null;
+			if( null !== profile ) {
+
+				switch( service ) {
+					case 'facebook':
+						locale = profile.locale;
+						break;
+					case 'foursquare':
+						break;
+					case 'github':
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						break;
+					case 'tumblr':
+						break;
+					case 'twitter': 
+						break;
+					case 'windows':
+						locale = profile.locale;
+						break;
+					case 'yahoo':
+						break;
+					default:
+						break;
+				};
+			
+			}
+			profiles[ service ] = locale;
+		};
+		return profiles;
+	};
+
+
 
 	Private.unifyOptionsAttributes = function( options ) {
 
@@ -1093,6 +1165,7 @@ var Accounts = ( function() {
 			, 'gender': Private.unifyOptions( Private.getProfileGenders() )
 			, 'image': Private.unifyOptions( Private.getProfileImages() )
 			, 'location': Private.unifyOptions( Private.getProfileLocations() )
+			, 'locale': Private.unifyOptions( Private.getProfileLocale() )
 			, 'description': Private.unifyOptions( Private.getProfileDescriptions() )
 			, 'url': Private.unifyOptions( Private.getProfilePersonalURLs() )
 		};
@@ -1109,6 +1182,7 @@ var Accounts = ( function() {
 			, 'gender': Private.getProfileGenders()
 			, 'image': Private.getProfileImages()
 			, 'location': Private.getProfileLocations()
+			, 'locale': Private.getProfileLocale()
 			, 'description': Private.getProfileDescriptions()
 			, 'url': Private.getProfilePersonalURLs()
 		};
