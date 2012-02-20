@@ -973,7 +973,8 @@ var Accounts = ( function() {
 
 				switch( service ) {
 					case 'facebook':
-						location = profile.location.name;
+						
+						location = ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
 						break;
 					case 'foursquare':
 						location = profile.homeCity;
@@ -985,7 +986,7 @@ var Accounts = ( function() {
 						location = profile.bio;
 						break;
 					case 'linkedin':
-						location = profile.location.name;
+						location =  ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
 						break;
 					case 'tumblr':
 						break;
