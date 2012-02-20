@@ -173,9 +173,12 @@ var Accounts = ( function() {
 		return Private.getAccessTokens();
 	};
 
-
 	Public.prototype.secret = function( type ) {
 		return Private.getAccessTokenSecret( type );
+	};
+
+	Public.prototype.secrets = function() {
+		return Private.getAccessTokenSecrets();
 	};
 
 	Public.prototype.profile = function( type ) {
@@ -449,6 +452,16 @@ var Accounts = ( function() {
 		}
 		return Private.storage.session.set( type + '_access_token', token );
 	};
+
+	Private.getAccessTokenSecrets = function() {
+		var services = Private.getActiveServices();
+		var x = 0; xlen = services.length, service, secrets = {};
+		for( x = 0; x < xlen; x += 1 ) {
+			service = services[ x ];
+			secrets[ service ] = Private.getAccessTokenSecret( service );
+		}
+		return secrets;
+	};	
 
 	Private.getAccessTokenSecret = function( type ) {
 		if( Public.prototype.disabled( type ) ) {
