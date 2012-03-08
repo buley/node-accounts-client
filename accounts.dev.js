@@ -185,6 +185,10 @@ var Accounts = ( function() {
 		return Private.getAccessTokenSecret( type );
 	};
 
+	Public.prototype.secrets = function() {
+		return Private.getAccessTokenSecrets();
+	};
+
 	Public.prototype.profile = function( type ) {
 		return Private.getProfile( type );
 	};
@@ -474,6 +478,16 @@ var Accounts = ( function() {
 		}
 		return Private.storage.session.set( type + '_access_token', token );
 	};
+
+	Private.getAccessTokenSecrets = function() {
+		var services = Private.getActiveServices();
+		var x = 0; xlen = services.length, service, secrets = {};
+		for( x = 0; x < xlen; x += 1 ) {
+			service = services[ x ];
+			secrets[ service ] = Private.getAccessTokenSecret( service );
+		}
+		return secrets;
+	};	
 
 	Private.getAccessTokenSecret = function( type ) {
 		if( Public.prototype.disabled( type ) ) {
@@ -998,7 +1012,8 @@ var Accounts = ( function() {
 
 				switch( service ) {
 					case 'facebook':
-						location = profile.location.name;
+						
+						location = ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
 						break;
 					case 'foursquare':
 						location = profile.homeCity;
@@ -1010,7 +1025,7 @@ var Accounts = ( function() {
 						location = profile.bio;
 						break;
 					case 'linkedin':
-						location = profile.location.name;
+						location =  ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
 						break;
 					case 'tumblr':
 						break;
