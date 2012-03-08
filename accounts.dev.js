@@ -173,6 +173,13 @@ var Accounts = ( function() {
 		return Private.getAccessTokens();
 	};
 
+	Public.prototype.ids = function() {
+		return Private.getIds();
+	};
+
+	Public.prototype.id = function( type ) {
+		return Private.getId( type );
+	};
 
 	Public.prototype.secret = function( type ) {
 		return Private.getAccessTokenSecret( type );
@@ -389,6 +396,24 @@ var Accounts = ( function() {
 		Private.socket.emit( 'account', request );
 
 	};	
+
+	Private.getIds = function() {
+		var services = Private.getActiveServices();
+		var x = 0; xlen = services.length, service, ids = {};
+		for( x = 0; x < xlen; x += 1 ) {
+			service = services[ x ];
+			ids[ service ] = Private.getId( service );
+		}
+		return ids;
+	};
+
+	
+	Private.getId = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfile( type ).id;
+	};
 
 	Private.getAccessTokens = function() {
 		var services = Private.getActiveServices();
