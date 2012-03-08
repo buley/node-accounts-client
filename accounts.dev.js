@@ -174,7 +174,7 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.ids = function() {
-		return Private.getIds();
+		return Private.getProfileIds();
 	};
 
 	Public.prototype.id = function( type ) {
@@ -400,23 +400,12 @@ var Accounts = ( function() {
 		Private.socket.emit( 'account', request );
 
 	};	
-
-	Private.getIds = function() {
-		var services = Private.getActiveServices();
-		var x = 0; xlen = services.length, service, ids = {};
-		for( x = 0; x < xlen; x += 1 ) {
-			service = services[ x ];
-			ids[ service ] = Private.getId( service );
-		}
-		return ids;
-	};
-
 	
 	Private.getId = function( type ) {
 		if( Public.prototype.disabled( type ) ) {
 			return null;
 		}
-		return Private.getProfile( type ).id;
+		return Private.getProfileIds()[ type ];
 	};
 
 	Private.getAccessTokens = function() {
