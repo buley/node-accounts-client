@@ -410,7 +410,7 @@ var Accounts = ( function() {
 
 	Private.getAccessTokens = function() {
 		var services = Private.getActiveServices();
-		var x = 0; xlen = services.length, service, tokens = {};
+		var x = 0, xlen = services.length, service, tokens = {};
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
 			tokens[ service ] = Private.getAccessToken( service );
