@@ -470,7 +470,7 @@ var Accounts = ( function() {
 
 	Private.getAccessTokenSecrets = function() {
 		var services = Private.getActiveServices();
-		var x = 0; xlen = services.length, service, secrets = {};
+		var x = 0, xlen = services.length, service, secrets = {};
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
 			secrets[ service ] = Private.getAccessTokenSecret( service );
@@ -1115,7 +1115,7 @@ var Accounts = ( function() {
 			}
 		} else {
 			for( attr in maxes ) {
-				var x = 0; xlen = services.length, service;
+				var x = 0, xlen = services.length, service;
 				for( x = 0; x < xlen; x += 1 ) {
 					service = services[ x ];
 					if( 'undefined' !== typeof options[ service ][ attr ] && ( 'undefined' === typeof max_vals[ attr ] || null === max_vals[ attr ] ) ) {
@@ -1149,7 +1149,7 @@ var Accounts = ( function() {
 		}
 		if( true === consensus ) {
 			//try to get highest ranked service with this response
-			var x = 0; xlen = services.length, service;
+			var x = 0, xlen = services.length, service;
 			var profiles = {};
 			for( x = 0; x < xlen; x += 1 ) {
 				service = services[ x ];
@@ -1160,7 +1160,7 @@ var Accounts = ( function() {
 		}
 		
 		//2) else default by order
-		var x = 0; xlen = services.length, service;
+		var x = 0, xlen = services.length, service;
 		var profiles = {};
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
@@ -1222,7 +1222,7 @@ var Accounts = ( function() {
 	Private.getUnifiedProfiles = function ( ) {
 
 		var services = Private.getActiveServices();
-		var x = 0; xlen = services.length, service;
+		var x = 0, xlen = services.length, service;
 		var profiles = {};
 
 		for( x = 0; x < xlen; x += 1 ) {
