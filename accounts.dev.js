@@ -309,7 +309,6 @@ var Accounts = ( function() {
 		for( id in subs ) {
 			callback = subs[ id ];
 			if( 'function' === typeof callback && true === subs.hasOwnProperty( id ) ) {
-				console.log('good to go', event_name, value );
 				callback( { event: event_name, data: value } );
 			};
 		}
