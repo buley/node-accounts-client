@@ -2083,7 +2083,7 @@ var Accounts = ( function() {
 			Private.storage.session.set( 'github_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'github_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'github', 'url': data.login_url } );
-			Private.publish( 'redirect', { service: 'githubt', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'github', 'url': data.login_url } );
 			window.location = data.login_url;
 
 		} else if( 'github' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
