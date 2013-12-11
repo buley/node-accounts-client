@@ -258,17 +258,17 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.subscribe = function( event_name, callback, id ) {
-		Private.publish( 'subscribe', { event: event_name, callback: callback, id: id } );
+
 		if( 'undefined' === typeof event_name || null === event_name || 'function' !== typeof callback ) {
 			return false;
 		}
+		Private.publish( 'subscribe', { event: event_name, callback: callback, id: id } );
 		if( null === id || 'undefined' === typeof id ) {
 			//create random id
 			var text = "";
 			var set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 			var x;
 			for( x = 0; x < 5; x++ ) { text += set.charAt( Math.floor( Math.random() * set.length ) ); }
-
 		}
 		if( 'undefined' === typeof subscribers[ event_name ] ) {
 			subscribers[ event_name ] = {};
@@ -306,10 +306,11 @@ var Accounts = ( function() {
 			return false;
 		}
 		var attr, callback;
-		for( attr in subs ) {
-			callback = subs[ attr ];
-			if( 'function' === typeof callback ) {
-				callback( value, attr );
+		for( id in subs ) {
+			callback = subs[ id ];
+			if( 'function' === typeof callback && true === subs.hasOwnProperty( id ) ) {
+				console.log('good to go', event_name, value );
+				callback( { event: event_name, data: value } );
 			};
 		}
 	};
