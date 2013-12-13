@@ -19,7 +19,7 @@ var Accounts = ( function() {
 	}
     Private.api = {};
     Private.api.request = function( req ) {
-		var url = [ '', req.type, req.command, req.service ].join( '/' )
+		var url = [ 'http://api.republish.co', req.type, req.action, req.service ].join( '/' );
 		console.log('API request',req,url);
 		this.get( url, {} );
     };
@@ -371,7 +371,7 @@ var Accounts = ( function() {
 		if( Public.prototype.disabled( service ) ) {
 			return false;
 		}
-		var request = { 'command': 'connect' };
+		var request = { 'action': 'connect' };
 		if( 1 === oauth_type ) {
 			request.access_token = Private.storage.session.get( service + '_access_token' );
 			request.access_token_secret = Private.storage.session.get( service + '_access_token_secret' );
@@ -1262,7 +1262,7 @@ var Accounts = ( function() {
 			return false;
 		}
 
-		var obj =  { 'type': 'account', 'command': 'logout', 'service': type };
+		var obj =  { 'action': 'logout', 'service': type };
 		obj[ 'access_token' ] = Private.getAccessToken( type );
 	
 		if( null !== obj.access_token && 'undefined' !== typeof obj.access_token ) {
@@ -1282,7 +1282,7 @@ var Accounts = ( function() {
 			return false;
 		}
 
-		Private.api.request( { 'type': 'account', 'command': 'login', 'service': type } );
+		Private.api.request( { 'action': 'login', 'service': type } );
 
 	};
 
@@ -1292,8 +1292,7 @@ var Accounts = ( function() {
 			return false;
 		}
 
-		params.type = 'account';
-		params.command = 'confirm';
+		params.action = 'confirm';
 		params.service = type;
 		Private.api.request( params );
 
