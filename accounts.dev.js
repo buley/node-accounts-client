@@ -343,7 +343,7 @@ var Accounts = ( function() {
 
 		Private.publish( 'connect', { service: service, oauth_type: oauth_type } );
 
-		Private.api.request( 'account', request );
+		Private.api.request( request );
 
 	};	
 	
@@ -1222,7 +1222,7 @@ var Accounts = ( function() {
 		obj[ 'access_token' ] = Private.getAccessToken( type );
 	
 		if( null !== obj.access_token && 'undefined' !== typeof obj.access_token ) {
-			Private.api.request( 'account', obj );
+			Private.api.request( obj );
 		}
 
 
@@ -1238,7 +1238,7 @@ var Accounts = ( function() {
 			return false;
 		}
 
-		Private.api.request( 'account', { 'request_type': 'account', 'command': 'login', 'service': type } );
+		Private.api.request( { 'request_type': 'account', 'command': 'login', 'service': type } );
 
 	};
 
@@ -1251,7 +1251,7 @@ var Accounts = ( function() {
 		params.request_type = 'account';
 		params.command = 'confirm';
 		params.service = type;
-		Private.api.request( 'account', params );
+		Private.api.request( params );
 
 	};
 
