@@ -1,20 +1,25 @@
 var Accounts = ( function() { 
 
-	var Private = {};
-	var subscribers = {};
+    /* Private is a singleton-patterned private object */
 
-	Private.sockets = [];
-	Private.socket = {};
-	Private.connected = false;
-	Private.prefix = '_acc_';
+	var Private = {}
+	    , subscribers = {}
+	    , Private.connected = false
+	    , Private.prefix = '_acc_'
+	    , Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ]
+        , Private.debug = false
+	    , Private.activeServices = []
+	    , z = 0
+        , zlen = Private.allServices.length;
 
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ];
-	Private.activeServices = [];
-
-	var z = 0, zlen = Private.allServices.length;
-	for( var z = 0; z < zlen; z += 1 ) {
+    for( z = 0; z < zlen; z += 1 ) {
 		Private[ Private.allServices[ z ] ] = {};
 	}
+    Private.api = {};
+    Private.api.request = function() {
+      console.log('API request',arguments)
+    };
+
 	Private.getActiveServices = function() {
 		return Private.activeServices.slice( 0 );
 	};
@@ -27,8 +32,10 @@ var Accounts = ( function() {
 		if( 'string' !== typeof service ) {
 			return false;
 		}
-		var services = Private.activeServices;
-		var already = false, x = 0; len = services.length;
+		var services = Private.activeServices
+            , already = false
+            , x = 0
+            , len = services.length;
 		for( x = 0; x < len; x += 1 ) {
 			if( service === services[ x ] ) {
 				return false;
@@ -42,8 +49,11 @@ var Accounts = ( function() {
 		if( 'string' !== typeof service ) {
 			return false;
 		}
-		var arr = [];
-		var changed = false, x = 0; len = services.length, serv;
+		var arr = []
+            , changed = false
+            , x = 0
+            , len = services.length
+            , serv;
 		for( x = 0; x < len; x += 1 ) {
 			serv = services[ x ];
 			if( service === serv ) {
@@ -55,33 +65,13 @@ var Accounts = ( function() {
 		return changed;
 	};
 
-	var Public = function( socket, services ) {
-		
+	var Public = function( services ) {
 		if( 'undefined' !== typeof services && null !== services ) {
 			Private.setActiveServices( services );
 		} else {
 			Public.prototype.enable();
 		}
-
-		if( 'undefined' !== socket && null !== socket ) {
-			Private.sockets.push( socket );	
-		}
-
-		Private.socket.on( 'connect', function() {
-			Private.connected = true;
-			Private.confirm();
-		} );
-
-		Private.socket.on( 'disconnect', function() {
-			Private.connected = false;
-		});
-
-		Private.socket.on( '_acc_response', function( response ) {	
-			Public.prototype.request( response );
-		} );
-
 		Private.detect_login();
-
 	};
 
 	Public.prototype.display = function( slug ) {
@@ -114,9 +104,9 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof service || null === service ) {
 			return Private.getActiveServices();
 		}
-		//Todo: use indexOf for Mozilla (native C is faster)
-		var services = Private.activeServices;
-		var x = 0; len = services.length;
+		var services = Private.activeServices
+		    , x = 0
+            , len = services.length;
 		for( x = 0; x < len; x += 1 ) {
 			if( service === services[ x ] ) {
 				return true;
@@ -127,12 +117,16 @@ var Accounts = ( function() {
 
 	Public.prototype.disabled = function( service ) {
 		if( 'undefined' === typeof service || null === service ) {
-			var services = Private.getActiveServices();
-			var all_services = Private.getActiveServices();
-			var x = 0, z = 0, len = services.length, a_len = all_services.length;
-			var results = [];
+			var services = Private.getActiveServices()
+                , all_services = Private.getActiveServices();
+			    , x = 0
+                , z = 0
+                , len = services.length
+                , a_len = all_services.length
+			    , results = []
+                , disabled = true;
 			for( x = 0; x < a_len; x += 1 ) {
-				var disabled = true;
+				disabled = true;
 				for( y = 0; y < len; y += 1 ) {
 					if( services[ z ] === all_services[ x ] ) {
 						disabled = false;
@@ -197,33 +191,6 @@ var Accounts = ( function() {
 		return Private.getProfiles();
 	};
 	
-	Public.prototype.socket = function( socket ) {
-		Private.sockets = [];
-		if( 'undefined' !== typeof socket && null !== socket ) {
-			Private.sockets.push( socket );
-		}
-	};
-
-	Public.prototype.sockets = function( socket ) {
-		return Private.sockets.slice(0);
-	};
-
-	Public.prototype.socket.push = function() {
-		Array.prototype.push.apply( Private.sockets, arguments );
-	};
-
-	Public.prototype.socket.unshift = function() {
-		Array.prototype.unshift.apply( Private.sockets, arguments );
-	};
-
-	Public.prototype.socket.shift = function() {
-		Array.prototype.shift.apply( Private.sockets, arguments );
-	};
-
-	Public.prototype.socket.splice = function() {
-		Array.prototype.splice.apply( Private.sockets, arguments );
-	};
-	
 	Public.prototype.status = function() {
 		var statuses = Private.login_statuses();
 		return statuses;
@@ -264,11 +231,13 @@ var Accounts = ( function() {
 		}
 		Private.publish( 'subscribe', { event: event_name, callback: callback, id: id } );
 		if( null === id || 'undefined' === typeof id ) {
-			//create random id
-			var text = "";
-			var set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-			var x;
-			for( x = 0; x < 5; x++ ) { text += set.charAt( Math.floor( Math.random() * set.length ) ); }
+			var text = ""
+                , set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+			    , x
+                , id_len = 5;
+			for( x = 0; x < id_len; x++ ) {
+                text += set.charAt( Math.floor( Math.random() * set.length ) );
+            }
 		}
 		if( 'undefined' === typeof subscribers[ event_name ] ) {
 			subscribers[ event_name ] = {};
@@ -297,15 +266,15 @@ var Accounts = ( function() {
 	};
 
 	Private.publish = function( event_name, value ) {
-
+        var subs = subscribers[ event_name ]
+            , attr
+            , callback;
 		if( 'undefined' === typeof event_name || null === event_name ) {
 			return false;
 		}
-		var subs = subscribers[ event_name ];
-		if( 'undefined' === typeof subs || null === subs ) {
+        if( 'undefined' === typeof subs || null === subs ) {
 			return false;
 		}
-		var attr, callback;
 		for( id in subs ) {
 			callback = subs[ id ];
 			if( 'function' === typeof callback && true === subs.hasOwnProperty( id ) ) {
@@ -314,68 +283,42 @@ var Accounts = ( function() {
 		}
 	};
 
-	//acts as if you're emitting to single socket
-	Private.socket.emit = function( channel, message ) {
-		var x, socket, len = Private.sockets.length;
-		for( x = 0; x < len; x += 1 ) {
-			socket = Private.sockets[ x ];
-			socket.emit( channel, message );
-		}
-	};
-
-	//adds callbacks to all sockets in the stack
-	Private.socket.on = function( event_name, callback ) {
-		var x, socket, len = Private.sockets.length;
-		for( x = 0; x < len; x += 1 ) {
-			socket = Private.sockets[ x ];
-			if( 'undefined' !== typeof socket && null !== socket ) {
-				socket.on( event_name, callback );
-			}
-		}
-	};
-
 	//TODO: rename response var to request
 	Public.prototype.request = function( response ) {
-
-		if( 'twitter' === response.service && 'account' === response.response_type ) {
-			Private.twitter.account_request( response );
-		}
-
-		if( 'facebook' === response.service && 'account' === response.response_type ) {
-			Private.facebook.account_request( response );
-		}
-
-		if( 'google' === response.service && 'account' === response.response_type ) {
-			Private.google.account_request( response );
-		}
-
-		if( 'foursquare' === response.service && 'account' === response.response_type ) {
-			Private.foursquare.account_request( response );
-		}
-
-		if( 'tumblr' === response.service && 'account' === response.response_type ) {
-			Private.tumblr.account_request( response );
-		}
-
-		if( 'github' === response.service && 'account' === response.response_type ) {
-			Private.github.account_request( response );
-		}
-
-		if( 'yahoo' === response.service && 'account' === response.response_type ) {
-			Private.yahoo.account_request( response );
-		}
-
-		if( 'linkedin' === response.service && 'account' === response.response_type ) {
-			Private.linkedin.account_request( response );
-		}
-
-		if( 'windows' === response.service && 'account' === response.response_type ) {
-			Private.windows.account_request( response );
-		}
-
+        if ( 'account' === response.response_type ) {
+            switch( response.service ) {
+                case 'twitter':
+                    Private.twitter.account_request( response );
+                    break;
+                case 'google':
+                    Private.google.account_request( response );
+                    break;
+                case 'facebook':
+                    Private.facebook.account_request( response );
+                    break;
+                case 'foursquare':
+                    Private.foursquare.account_request( response );
+                    break;
+                case 'tumblr':
+                    Private.tumblr.account_request( response );
+                    break;
+                case 'github':
+                    Private.github.account_request( response );
+                    break;
+                case 'yahoo':
+                    Private.yahoo.account_request( response );
+                    break;
+                case 'linkedin':
+                    Private.linkedin.account_request( response );
+                    break;
+                case 'windows':
+                    Private.windows.account_request( response );
+                    break;
+                default:
+                    break;
+            }
+        }
 	};
-
-	Private.debug = false;
 
 	Private.connect = function( service, oauth_type ) {
 		if( Public.prototype.disabled( service ) ) {
@@ -397,7 +340,7 @@ var Accounts = ( function() {
 
 		Private.publish( 'connect', { service: service, oauth_type: oauth_type } );
 
-		Private.socket.emit( 'account', request );
+		Private.api.request( 'account', request );
 
 	};	
 	
@@ -553,12 +496,14 @@ var Accounts = ( function() {
 
 
 	Private.getProfileIds = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, id, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , id
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			if( profile !== null ) {
-
 				id = null;
 				switch( service ) {
 					case 'facebook':
@@ -601,8 +546,11 @@ var Accounts = ( function() {
 
 
 	Private.getProfileDisplayNames = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, names, profiles = {};
+		var services = Private.getUnifiedProfiles()
+            , attr
+            , profile
+            , names = {}
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			names = { display: null, first: null, last: null };
@@ -654,13 +602,15 @@ var Accounts = ( function() {
 
 
 	Private.getProfileGenders = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, gender, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , gender
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			gender = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						gender = profile.gender;
@@ -701,13 +651,15 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfileBirthdates = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, birthdate, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , birthdate = {}
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			birthdate = { day: null, month: null, year: null };
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						birthdate.day = new Date( profile.birthday ).getDate();
@@ -744,13 +696,15 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfileImages = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, image, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile = {}
+            , image
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			image = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						break;
@@ -786,13 +740,16 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfilePersonalURLs = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, other = [], personal_url, profiles = {};
+		var services = Private.getUnifiedProfiles()
+            , attr
+            , profile
+            , other = []
+            , personal_url
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			personal_url = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						personal_url = profile.website;
@@ -825,8 +782,12 @@ var Accounts = ( function() {
 
 
 	Private.getProfileURLs = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, other = [], profile_url, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , other = []
+            , profile_url
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			profile_url = null;
@@ -870,8 +831,11 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfileEmails = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, email, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , email
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			email = null;
@@ -910,13 +874,15 @@ var Accounts = ( function() {
 
 
 	Private.getProfileUsernames = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, username, profiles = {};
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , username
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			username = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						username = profile.username;
@@ -952,13 +918,15 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfileDescriptions = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, description, profiles = {};
+		var services = Private.getUnifiedProfiles()
+            , attr
+            , profile
+            , description
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			description = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						break;
@@ -984,7 +952,6 @@ var Accounts = ( function() {
 					default:
 						break;
 				};
-			
 			}
 			profiles[ service ] = description;
 		};
@@ -992,16 +959,17 @@ var Accounts = ( function() {
 	};
 
 	Private.getProfileLocations = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, location, profiles = {};
+		var services = Private.getUnifiedProfiles()
+            , attr
+            , profile
+            , location
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			location = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
-						
 						location = ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
 						break;
 					case 'foursquare':
@@ -1028,7 +996,6 @@ var Accounts = ( function() {
 					default:
 						break;
 				};
-			
 			}
 			profiles[ service ] = location;
 		};
@@ -1037,13 +1004,15 @@ var Accounts = ( function() {
 
 
 	Private.getProfileLocale = function () {
-		var services = Private.getUnifiedProfiles();
-		var attr, profile, locale, profiles = {};
+		var services = Private.getUnifiedProfiles()
+            , attr
+            , profile
+            , locale
+            , profiles = {};
 		for( service in services ) {
 			profile = services[ service ];
 			locale = null;
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						locale = profile.locale;
@@ -1068,7 +1037,6 @@ var Accounts = ( function() {
 					default:
 						break;
 				};
-			
 			}
 			profiles[ service ] = locale;
 		};
@@ -1076,16 +1044,23 @@ var Accounts = ( function() {
 	};
 
 
-
 	Private.unifyOptionsAttributes = function( options ) {
 
-		var services = Private.getActiveServices();
-		//1) check for consensus 
-		var value = null;
-		var consensus = false;
-		var attr, val, vals = {}, max_vals = {}, maxes = {}, max_service = null;
-		
-		for( attr in options ) {
+        var services = Private.getActiveServices()
+		    , value = null
+		    , consensus = false
+            , attr
+            , val
+            , vals = {}
+            , max_vals = {}
+            , maxes = {}
+            , max_service = null
+            , attr3
+            , x = 0
+            , xlen = services.length
+            , service;
+
+        for( attr in options ) {
 			for( attr2 in options[ attr ] ) {
 				if( 'undefined' === typeof vals[ attr2 ] ) {
 					vals[ attr2 ] = {};
@@ -1100,8 +1075,7 @@ var Accounts = ( function() {
 			}
 		}
 
-		var attr3;
-		for( attr3 in maxes ) {	
+		for( attr3 in maxes ) {
 			if( maxes[ attr3 ] > 1 ) {
 				consensus = true;
 			}
@@ -1115,7 +1089,6 @@ var Accounts = ( function() {
 			}
 		} else {
 			for( attr in maxes ) {
-				var x = 0, xlen = services.length, service;
 				for( x = 0; x < xlen; x += 1 ) {
 					service = services[ x ];
 					if( 'undefined' !== typeof options[ service ][ attr ] && ( 'undefined' === typeof max_vals[ attr ] || null === max_vals[ attr ] ) ) {
@@ -1124,18 +1097,22 @@ var Accounts = ( function() {
 				}
 			}
 		}
-
 		return max_vals;
-	
 	};
 
 	Private.unifyOptions = function( options ) {
-	
-		var services = Private.getActiveServices();
-		//1) check for consensus 
-		var value = null;
-		var consensus = false;
-		var attr, val, vals = {}, max = 0, max_service = null;
+		var services = Private.getActiveServices()
+		    , value = null
+		    , consensus = false
+            , attr
+            , val
+            , vals = {}
+            , max = 0
+            , max_service = null
+            , x = 0
+            , xlen = services.length
+            , service
+            , profiles = {};
 		for( attr in options ) {
 			val = options[ attr ];
 			vals[ val ] = ( 'undefined' === typeof vals[ val ] ) ? 1 : ( vals[ val ] + 1 );
@@ -1148,9 +1125,6 @@ var Accounts = ( function() {
 			consensus = true;
 		}
 		if( true === consensus ) {
-			//try to get highest ranked service with this response
-			var x = 0, xlen = services.length, service;
-			var profiles = {};
 			for( x = 0; x < xlen; x += 1 ) {
 				service = services[ x ];
 				if( null !== options[ service ] && 'undefined' !== typeof options[ service ] && service === max_service ) {
@@ -1158,10 +1132,6 @@ var Accounts = ( function() {
 				}
 			}
 		}
-		
-		//2) else default by order
-		var x = 0, xlen = services.length, service;
-		var profiles = {};
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
 			if( null !== options[ service ] && 'undefined' !== typeof options[ service ] ) {
@@ -1169,12 +1139,11 @@ var Accounts = ( function() {
 			}
 		}
 		return null;
-
-
 	};
 
 	Private.removeNulls = function( options ) {
-		var opts = {}, attr;
+		var opts = {}
+            , attr;
 		for( attr in options ) {
 			if( 'undefined' !== typeof options[ attr ] && null !== options[ attr ] ) {
 				opts[ attr ] = options[ attr ];
@@ -1221,9 +1190,11 @@ var Accounts = ( function() {
 
 	Private.getUnifiedProfiles = function ( ) {
 
-		var services = Private.getActiveServices();
-		var x = 0, xlen = services.length, service;
-		var profiles = {};
+		var services = Private.getActiveServices()
+            , x = 0
+            , xlen = services.length
+            , service
+		    , profiles = {};
 
 		for( x = 0; x < xlen; x += 1 ) {
 			service = services[ x ];
@@ -1248,7 +1219,7 @@ var Accounts = ( function() {
 		obj[ 'access_token' ] = Private.getAccessToken( type );
 	
 		if( null !== obj.access_token && 'undefined' !== typeof obj.access_token ) {
-			Private.socket.emit( 'account', obj );
+			Private.api.request( 'account', obj );
 		}
 
 
@@ -1264,7 +1235,7 @@ var Accounts = ( function() {
 			return false;
 		}
 
-		Private.socket.emit( 'account', { 'request_type': 'account', 'command': 'login', 'service': type } );
+		Private.api.request( 'account', { 'request_type': 'account', 'command': 'login', 'service': type } );
 
 	};
 
@@ -1277,7 +1248,7 @@ var Accounts = ( function() {
 		params.request_type = 'account';
 		params.command = 'confirm';
 		params.service = type;
-		Private.socket.emit( 'account', params );
+		Private.api.request( 'account', params );
 
 	};
 
@@ -1374,195 +1345,6 @@ var Accounts = ( function() {
 		
 		}
 	};
-
-	Private.confirm = function() {
-
-		var url_vars = Private.utilities.get_url_vars();
-		
-		var facebook_code = Private.storage.session.get( 'facebook_code' );
-		if( 'undefined' !== typeof facebook_code && null !== facebook_code ) {
-			Private.publish( 'verifying', { service: 'facebook', 'code': facebook_code } );
-			Private.do_confirm( 'facebook', { 'code': facebook_code } );
-			Private.storage.session.delete( 'facebook_code' );
-		}	
-		
-		var twitter_token = Private.storage.session.get( 'twitter_oauth_request_token' );
-		var twitter_verifier = Private.storage.session.get( 'twitter_oauth_request_verifier' );
-		if( 'undefined' !== typeof twitter_token && null !== twitter_token && 'undefined' !== typeof twitter_verifier && null !== twitter_verifier ) {
-			Private.publish( 'verifying', { service: 'twitter', 'oauth_token': twitter_token, 'oauth_verifier': twitter_verifier } );
-			Private.do_confirm( 'twitter', { 'oauth_token': twitter_token, 'oauth_verifier': twitter_verifier } );
-			Private.storage.session.delete( 'twitter_oauth_request_token' );
-			Private.storage.session.delete( 'twitter_oauth_request_verifier' );
-		}
-
-		var foursquare_code = Private.storage.session.get( 'foursquare_code' );
-		if( 'undefined' !== typeof foursquare_code && null !== foursquare_code  ) {
-			Private.publish( 'verifying', { service: 'foursquare', 'code': foursquare_code } );
-			Private.do_confirm( 'foursquare', { 'code': foursquare_code } );
-			Private.storage.session.delete( 'foursquare_code' );
-		}
-
-		var google_code = Private.storage.session.get( 'google_code' );
-		if( 'undefined' !== typeof google_code && null !== google_code ) {
-			Private.publish( 'verifying', { service: 'google', 'code': google_code } );
-			Private.do_confirm( 'google', { 'code': google_code } );
-			Private.storage.session.delete( 'google_code' );
-		}
-
-		var windows_code = Private.storage.session.get( 'windows_code' );
-		if( 'undefined' !== typeof windows_code && null !== windows_code  ) {
-			Private.publish( 'verifying', { service: 'windows', 'code': windows_code } );
-			Private.do_confirm( 'windows', { 'code': windows_code } );
-			Private.storage.session.delete( 'windows_code' );
-		}
-
-		var github_code = Private.storage.session.get( 'github_code' );
-		if( 'undefined' !== typeof github_code && null !== github_code  ) {
-			Private.publish( 'verifying', { service: 'github', 'code': github_code } );
-			Private.do_confirm( 'github', { 'code': github_code } );
-			Private.storage.session.delete( 'github_code' );
-		}
-
-		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
-		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
-		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
-		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
-			Private.publish( 'verifying', { service: 'tumblr', 'oauth_token': tumblr_token, 'oauth_verifier': tumblr_verifier } );
-			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_token_secret': tumblr_token_secret, 'oauth_verifier': tumblr_verifier } );
-			Private.storage.session.delete( 'tumblr_oauth_request_token' );
-			Private.storage.session.delete( 'tumblr_oauth_request_token_secret' );
-			Private.storage.session.delete( 'tumblr_oauth_request_verifier' );
-		}
-
-		var yahoo_token = Private.storage.session.get( 'yahoo_oauth_request_token' );
-		var yahoo_token_secret = Private.storage.session.get( 'yahoo_oauth_request_token_secret' );
-		var yahoo_verifier = Private.storage.session.get( 'yahoo_oauth_request_verifier' );
-		if( 'undefined' !== typeof yahoo_token && null !== yahoo_token && 'undefined' !== typeof yahoo_verifier && null !== yahoo_verifier ) {
-			Private.publish( 'verifying', { service: 'yahoo', 'oauth_token': yahoo_token, 'oauth_verifier': yahoo_verifier } );
-			Private.do_confirm( 'yahoo', { 'oauth_token': yahoo_token, 'oauth_token_secret': yahoo_token_secret, 'oauth_verifier': yahoo_verifier } );
-			Private.storage.session.delete( 'yahoo_oauth_request_token' );
-			Private.storage.session.delete( 'yahoo_oauth_request_token_secret' );
-			Private.storage.session.delete( 'yahoo_oauth_request_verifier' );
-		}
-
-		var linkedin_token = Private.storage.session.get( 'linkedin_oauth_request_token' );
-		var linkedin_token_secret = Private.storage.session.get( 'linkedin_oauth_request_token_secret' );
-		var linkedin_verifier = Private.storage.session.get( 'linkedin_oauth_request_verifier' );
-		if( 'undefined' !== typeof linkedin_token && null !== linkedin_token && 'undefined' !== typeof linkedin_verifier && null !== linkedin_verifier ) {
-			Private.publish( 'verifying', { service: 'linkedin', 'oauth_token': linkedin_token, 'oauth_verifier': linkedin_verifier } );
-			Private.do_confirm( 'linkedin', { 'oauth_token': linkedin_token, 'oauth_token_secret': linkedin_token_secret, 'oauth_verifier': linkedin_verifier } );
-			Private.storage.session.delete( 'linkedin_oauth_request_token' );
-			Private.storage.session.delete( 'linkedin_oauth_request_token_secret' );
-			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
-		}
-
-
-
-	};
-
-
-	Private.detect_login = function() {
-
-		var url_vars = Private.utilities.get_url_vars();
-		
-		if( 'undefined' !== typeof url_vars.code && 'facebook' === url_vars.service ) {
-			Private.storage.session.set( 'facebook_code', url_vars.code );
-			Private.publish( 'verifable', { service: 'facebook', 'code': url_vars.code } );
-			Private.state.replaceCurrent( '/', 'home' );
-		}	
-		
-		if( 'undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier ) {
-			if( 'tumblr' === url_vars.service ) {
-
-				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verifiable', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
-				Private.state.replaceCurrent( '/', 'home' );
-		 
-			} else if( 'yahoo' === url_vars.service ) {
-
-				Private.storage.session.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verifiable', { service: 'yahoo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
-				Private.state.replaceCurrent( '/', 'home' );
-		 		
-			} else if( 'linkedin' === url_vars.service ) {
-
-				Private.storage.session.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verifiable', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
-				Private.state.replaceCurrent( '/', 'home' );
-		 		
-			} else { //twitter doesn't use service var TODO: fix?
-
-				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verifiable', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
-				Private.state.replaceCurrent( '/', 'home' );
-
-			}
-		}
-		
-		if( 'undefined' !== typeof url_vars.logout && 'undefined' !== typeof url_vars.service ) {
-			if( 'facebook' === url_vars.service ) {
-				Private.facebook.account_request( url_vars );
-			}	
-		}
-
-		if( 'undefined' !== typeof url_vars.code && 'windows' === url_vars.service ) {
-			Private.storage.session.set( 'windows_code', url_vars.code );
-			Private.publish( 'verifiable', { service: 'windows', 'code': url_vars.code } );
-			Private.state.replaceCurrent( '/', 'home' );
-		}			
-
-		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
-			Private.storage.session.set( 'github_code', url_vars.code );
-			Private.publish( 'verifiable', { service: 'github', 'code': url_vars.code } );
-			Private.state.replaceCurrent( '/', 'home' );
-		}	
-		
-		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
-			Private.storage.session.set( 'foursquare_code', url_vars.code );
-			Private.publish( 'verifiable', { service: 'foursquare', 'code': url_vars.code } );
-			Private.state.replaceCurrent( '/', 'home' );
-		}
-
-		if( 'undefined' !== typeof url_vars.code && 'google' === url_vars.service ) {
-			Private.storage.session.set( 'google_code', url_vars.code );
-			Private.publish( 'verifiable', { service: 'google', 'code': url_vars.code } );
-			Private.state.replaceCurrent( '/', 'home' );
-		}
-
-	};
-
-	Private.login_statuses = function() {
-
-		var services = {
-			'facebook': 'facebook_access_token'
-			, 'twitter': 'twitter_access_token'
-			, 'google': 'google_access_token'
-			, 'foursquare': 'foursquare_access_token'
-			, 'github': 'github_access_token'
-			, 'yahoo': 'yahoo_access_token'
-			, 'tumblr': 'tumblr_access_token'
-			, 'linkedin': 'linkedin_access_token'
-		};
-
-		var statuses = {};
-		for( service in services ) {
-			var test = Private.storage.session.get( services[ service ] );
-			if( 'undefined' !== typeof test && null !== test && '' !== test ) {
-				statuses[ service ] = true;
-			} else {
-				statuses[ service ] = false;
-			}
-		}
-
-		Private.publish( 'status', { status: statuses } );
-		
-		return statuses;
-
-	}
 
 	/* Facebook */
 
@@ -1713,8 +1495,6 @@ var Accounts = ( function() {
 			Private.publish( 'sessioned', { service: 'linkedin', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 	};
-
-
 
 	/* Tumblr */
 
@@ -1884,11 +1664,7 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
 		}
 
-
-
 	};
-
-	//aaa
 
 	Private.detect_login = function() {
 
@@ -2240,7 +2016,6 @@ var Accounts = ( function() {
 		}
 
 	};
-
 
 	/* History */
 
