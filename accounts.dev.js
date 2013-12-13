@@ -4,13 +4,15 @@ var Accounts = ( function() {
 
 	var Private = {}
 	    , subscribers = {}
-	    , Private.connected = false
-	    , Private.prefix = '_acc_'
-	    , Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ]
-        , Private.debug = false
-	    , Private.activeServices = []
 	    , z = 0
-        , zlen = Private.allServices.length;
+        , zlen;
+
+	Private.connected = false;
+	Private.prefix = '_acc_';
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ];
+	Private.debug = false;
+	Private.activeServices = [];
+	zlen = Private.allServices.length;
 
     for( z = 0; z < zlen; z += 1 ) {
 		Private[ Private.allServices[ z ] ] = {};
@@ -118,7 +120,7 @@ var Accounts = ( function() {
 	Public.prototype.disabled = function( service ) {
 		if( 'undefined' === typeof service || null === service ) {
 			var services = Private.getActiveServices()
-                , all_services = Private.getActiveServices();
+                , all_services = Private.getActiveServices()
 			    , x = 0
                 , z = 0
                 , len = services.length
