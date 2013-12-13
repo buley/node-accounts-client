@@ -8,7 +8,7 @@ var Accounts = ( function() {
         , zlen;
 
 	Private.connected = false;
-	Private.prefix = '_acc_';
+	Private.prefix = 'accounts';
 	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ];
 	Private.debug = false;
 	Private.activeServices = [];
@@ -19,9 +19,14 @@ var Accounts = ( function() {
 	}
     Private.api = {};
     Private.api.request = function( req ) {
-		var url = [ 'http://api.republish.co', req.type, req.action, req.service ].join( '/' );
-		console.log('API request',req,url);
-		this.get( url, {} );
+		var url = [ 'http://api.republish.co', Private.prefix, 'login', req.service ].join( '/' );
+		if ( 'confirm' === req.action ) {
+			this.get( url, {} );
+		} else {
+			this.post( url, { code: req.code }, {} );
+		}
+		console.log('API request',url);
+
     };
 	Private.api.get = function( url, headers ) {
 		headers = headers || {};
@@ -514,7 +519,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
 			return false;
 		}
-		Private.storage.session.set( Private.prefix + type + '_access_token_secret', secret );
+		Private.storage.session.set( Private.prefix + '_' + type + '_access_token_secret', secret );
 	};
 
 	Private.getProfiles = function () {
@@ -528,7 +533,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || null === type ) {
 			return Private.getUnifiedProfile();
 		}
-		return Private.storage.local.get( Private.prefix + type + '_profile' );
+		return Private.storage.local.get( Private.prefix + '_' + type + '_profile' );
 	};
 	
 	Private.setProfile = function ( type, data ) {
@@ -538,7 +543,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
 			return false;
 		}
-		return Private.storage.local.set( Private.prefix + type + '_profile', data );
+		return Private.storage.local.set( Private.prefix + '_' + type + '_profile', data );
 	};
 
 
@@ -2106,15 +2111,15 @@ var Accounts = ( function() {
 		if( 'string' !== typeof set_value ) {
 			set_value = JSON.stringify( set_value );
 		}
-		return Private.store.setItem( Private.prefix + set_key, set_value );
+		return Private.store.setItem( Private.prefix + '_' + set_key, set_value );
 	};
 		
 	Private.storage.local.delete = function( key ) {
-		return Private.store.removeItem( Private.prefix + key );
+		return Private.store.removeItem( Private.prefix + '_' + key );
 	};
 		
 	Private.storage.local.get = function( get_key ) {
-		return JSON.parse( Private.store.getItem( Private.prefix + get_key ) );
+		return JSON.parse( Private.store.getItem( Private.prefix + '_' + get_key ) );
 	};
 
 	Private.storage.local.set_batch = function( dictionary ) {
@@ -2138,15 +2143,15 @@ var Accounts = ( function() {
 	Private.sessionStorage = sessionStorage;
 
 	Private.storage.session.set = function( set_key, set_value ) {
-		return Private.sessionStorage.setItem( Private.prefix + set_key, set_value );
+		return Private.sessionStorage.setItem( Private.prefix + '_' + set_key, set_value );
 	};
 		
 	Private.storage.session.delete = function( key ) {
-		return Private.sessionStorage.removeItem( Private.prefix + key );
+		return Private.sessionStorage.removeItem( Private.prefix + '_' + key );
 	};
 		
 	Private.storage.session.get = function( get_key ) {
-		return Private.sessionStorage.getItem( Private.prefix + get_key );
+		return Private.sessionStorage.getItem( Private.prefix + '_' + get_key );
 	};
 
 	Private.storage.session.set_batch = function( dictionary ) {
