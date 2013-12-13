@@ -73,7 +73,8 @@ var Accounts = ( function() {
 		} else {
 			Public.prototype.enable();
 		}
-		Private.detect_login();
+		Private.detectLogin();
+		Private.confirm();
 	};
 
 	Public.prototype.display = function( slug ) {
@@ -1587,7 +1588,7 @@ var Accounts = ( function() {
 
 	Private.confirm = function() {
 
-		var url_vars = Private.utilities.get_url_vars();
+		var url_vars = Private.utilities.getUrlVars();
 		
 		var facebook_code = Private.storage.session.get( 'facebook_code' );
 		if( 'undefined' !== typeof facebook_code && null !== facebook_code ) {
@@ -1668,9 +1669,9 @@ var Accounts = ( function() {
 
 	};
 
-	Private.detect_login = function() {
+	Private.detectLogin = function() {
 
-		var url_vars = Private.utilities.get_url_vars();
+		var url_vars = Private.utilities.getUrlVars();
 		
 		if( 'undefined' !== typeof url_vars.code && 'facebook' === url_vars.service ) {
 			Private.storage.session.set( 'facebook_code', url_vars.code );
@@ -2122,9 +2123,9 @@ var Accounts = ( function() {
 
 	Private.utilities = Private.utilities || {};
 	// Cleverness via: http://papermashup.com/read-url-get-variables-withjavascript/
-	Private.utilities.get_url_vars = function() {
-		var vars = {};
-		var parts = window.location.href.replace( /[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+	Private.utilities.getUrlVars = function() {
+		var vars = {}
+			, parts = window.location.href.replace( /[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
 			vars[key] = value;
 		} );
 		return vars;
