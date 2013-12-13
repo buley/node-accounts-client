@@ -36,7 +36,7 @@ var Accounts = ( function() {
 			, headers: headers
 		} );
 	};
-	Private.api.put = function( url, data ) {
+	Private.api.put = function( url, data, headers ) {
 		headers = headers || {};
 		Private.api.ajax( {
 			type: 'PUT'
@@ -45,7 +45,7 @@ var Accounts = ( function() {
 			, headers: headers
 		} );
 	};
-	Private.api.post = function( url, data ) {
+	Private.api.post = function( url, data, headers ) {
 		headers = headers || {};
 		Private.api.ajax( {
 			type: 'POST'
