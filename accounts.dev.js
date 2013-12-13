@@ -18,9 +18,53 @@ var Accounts = ( function() {
 		Private[ Private.allServices[ z ] ] = {};
 	}
     Private.api = {};
-    Private.api.request = function() {
-      console.log('API request',arguments)
+    Private.api.request = function( req ) {
+		var url = [ '', req.type, req.command, req.service ].join( '/' )
+		console.log('API request',req,url);
+		this.get( url, {} );
     };
+	Private.api.get = function( url, headers ) {
+		headers = headers || {};
+		Private.api.ajax( {
+			type: 'GET'
+			, url: url
+			, headers: headers
+		} );
+	};
+	Private.api.put = function( url, data ) {
+		headers = headers || {};
+		Private.api.ajax( {
+			type: 'PUT'
+			, url: url
+			, data: data
+			, headers: headers
+		} );
+	};
+	Private.api.post = function( url, data ) {
+		headers = headers || {};
+		Private.api.ajax( {
+			type: 'POST'
+			, url: url
+			, data: data
+			, headers: headers
+		} );
+	};
+	Private.api.ajax = function(req) {
+		var request
+			, type = ( type || '' ).toUpperCase()
+		if ( 'undefined' !== typeof window.XMLHttpRequest ) {
+		  request = new XMLHttpRequest();
+		} else {
+		  request = new ActiveXObject( "Microsoft.XMLHTTP" );
+		}
+		request.onreadystatechange = function() {
+		  if ( 4 === request.readyState && 200 === request.status ) {
+			console.log("FINISHED",arguments)
+		  }
+		};
+		request.open( req.type, req.url, true );
+		request.send();
+	};
 
 	Private.getActiveServices = function() {
 		return Private.activeServices.slice( 0 );
