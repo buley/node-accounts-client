@@ -412,6 +412,10 @@ var Accounts = ( function() {
         if( 'undefined' === typeof subs || null === subs ) {
 			return false;
 		}
+		console.log('event',event_name);
+		if ( 'login' === event_name ) {
+			Private.tumblr.account_request( value );
+		}
 		for( id in subs ) {
 			callback = subs[ id ];
 			if( 'function' === typeof callback && true === subs.hasOwnProperty( id ) ) {
@@ -1495,24 +1499,24 @@ var Accounts = ( function() {
 				Private.publish( 'redirect', { service: 'facebook', 'url': data.logout_url } );
 				window.location = data.logout_url;
 			}
-		} else if( 'facebook' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'facebook' === data.service && 'undefined' !== typeof data.login_url ) {
 
 			Private.publish( 'session_redirect', { service: 'facebook', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'facebook', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'facebook' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'facebook' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 				
 			Private.publish( 'confirm', { service: 'facebook' } );
 			Private.facebook.handle_confirm( data );	
 
-		} else if( 'facebook' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {	
+		} else if( 'facebook' === data.service &&  'undefined' !== typeof data.connect_status ) {	
 			if( 'connected' === data.connect_status ) {
 				Private.publish( 'confirmed', { service: 'facebook' } );
 			} else {
 				Private.unsession( 'facebook' );
 			}
-		} else if( 'facebook' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'facebook' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.unsession( 'facebook' );
 			Private.state.replaceCurrent( '/', 'home' );
@@ -1529,13 +1533,13 @@ var Accounts = ( function() {
 			Private.publish( 'unsession', { service: 'foursquare' } );	
 			Private.unsession( 'foursquare' );
 			Private.state.replaceCurrent( '/', 'home' );
-		} else if( 'foursquare' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'foursquare' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.publish( 'session_redirect', { service: 'foursquare', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'foursquare', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'foursquare' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'foursquare' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'foursquare' } );
 			Private.foursquare.handle_confirm( data );
@@ -1547,7 +1551,7 @@ var Accounts = ( function() {
 				Private.unsession( 'foursquare' );
 			}
 
-		} else if( 'foursquare' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'foursquare' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.unsession( 'foursquare' );
 			Private.state.replaceCurrent( '/', 'home' );
@@ -1564,25 +1568,25 @@ var Accounts = ( function() {
 			Private.publish( 'unsession', { service: 'google' } );	
 			Private.unsession( 'google' );
 			Private.state.replaceCurrent( '/', 'home' );
-		} else if( 'google' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'google' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.publish( 'session_redirect', { service: 'google', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'google', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'google' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'google' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'google' } );
 			Private.google.handle_confirm( data );
 
-		} else if( 'google' === data.service && 'account' === data.response_type && 'authorized' === data.account_status ) {
+		} else if( 'google' === data.service &&  'authorized' === data.account_status ) {
 			if( 'connected' === data.connect_status ) {
 				Private.publish( 'confirmed', { service: 'google' } );
 			} else {
 				Private.unsession( 'google' );
 			}
 
-		} else if( 'google' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'google' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.unsession( 'google' );
 			Private.state.replaceCurrent( '/', 'home' );
@@ -1816,8 +1820,6 @@ var Accounts = ( function() {
 			if( 'tumblr' === url_vars.service ) {
 				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.storage.session.set( 'tumblr_oauth_request_token_secret', url_vars.oauth_token_secret );
-
 				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 
@@ -1914,7 +1916,7 @@ var Accounts = ( function() {
 			Private.unsession( 'yahoo' );
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'yahoo' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.storage.session.set( 'yahoo_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'yahoo_oauth_request_token_secret', data.request_token_secret );
@@ -1922,7 +1924,7 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'yahoo', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'yahoo' === data.service &&  'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
@@ -1930,12 +1932,12 @@ var Accounts = ( function() {
 			
 			}
 
-		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'authorized' === data.account_status ) {
+		} else if( 'yahoo' === data.service &&  'authorized' === data.account_status && 'authorized' === data.account_status ) {
 
 			Private.publish( 'confirm', { service: 'yahoo' } );
 			Private.yahoo.handle_confirm( data );
 
-		} else if( 'yahoo' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'yahoo' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.state.replaceCurrent( '/', 'home' );
 
@@ -1953,7 +1955,7 @@ var Accounts = ( function() {
 			Private.unsession( 'windows' );
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'windows' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'windows' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.storage.session.set( 'windows_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'windows_oauth_request_token_secret', data.request_token_secret );
@@ -1961,18 +1963,18 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'windows', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'windows' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'windows' === data.service &&  'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 				Private.publish( 'confirmed', { service: 'windows' } );
 			}
 
-		} else if( 'windows' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'windows' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'windows' } );
 			Private.windows.handle_confirm( data );
 
-		} else if( 'windows' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'windows' === data.service &&  'unauthorized' === data.account_status ) {
 		
 			Private.state.replaceCurrent( '/', 'home' );
 
@@ -1991,7 +1993,7 @@ var Accounts = ( function() {
 			Private.unsession( 'github' );
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'github' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'github' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.storage.session.set( 'github_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'github_oauth_request_token_secret', data.request_token_secret );
@@ -1999,7 +2001,7 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'github', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'github' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'github' === data.service &&  'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
@@ -2011,12 +2013,12 @@ var Accounts = ( function() {
 			
 			}
 
-		} else if( 'github' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'github' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'github' } );
 			Private.github.handle_confirm( data );
 
-		} else if( 'github' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'github' === data.service &&  'unauthorized' === data.account_status ) {
 		
 			Private.unsession( 'github' );
 			Private.state.replaceCurrent( '/', 'home' );
@@ -2035,16 +2037,16 @@ var Accounts = ( function() {
 			Private.unsession( 'tumblr' );
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'tumblr' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.storage.session.set( 'tumblr_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'tumblr_oauth_request_token_secret', data.request_token_secret );
-			console.log('REQUEST',data, data.request_token, data.request_token_secret);
 			Private.publish( 'session_redirect', { service: 'tumblr', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'tumblr', 'url': data.login_url } );
+
 			window.location = data.login_url;
 
-		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'tumblr' === data.service &&  'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
@@ -2056,12 +2058,12 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'tumblr' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'tumblr' } );
 			Private.tumblr.handle_confirm( data );
 
-		} else if( 'tumblr' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'tumblr' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.unsession( 'tumblr' );
 			Private.state.replaceCurrent( '/', 'home' );
@@ -2080,13 +2082,13 @@ var Accounts = ( function() {
 			private.unsession( 'twitter' );
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'twitter' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'twitter' === data.service &&  'undefined' !== typeof data.login_url ) {
 			
 			Private.publish( 'session_redirect', { service: 'twitter', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'twitter', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'twitter' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'twitter' === data.service &&  'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 			
@@ -2098,12 +2100,12 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'twitter' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'twitter' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'twitter' } );
 			Private.twitter.handle_confirm( data );
 
-		} else if( 'twitter' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'twitter' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.unsession( 'twitter' );
 			Private.state.replaceCurrent( '/', 'home' );
@@ -2122,7 +2124,7 @@ var Accounts = ( function() {
 			private.unsession( 'linkedin' );
 			Private.state.replaceCurrent( '/', 'home' );
 
-		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.login_url ) {
+		} else if( 'linkedin' === data.service &&  'undefined' !== typeof data.login_url ) {
 
 			Private.storage.session.set( 'linkedin_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'linkedin_oauth_request_token_secret', data.request_token_secret );
@@ -2130,7 +2132,7 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'linkedin', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'undefined' !== typeof data.connect_status ) {
+		} else if( 'linkedin' === data.service &&  'undefined' !== typeof data.connect_status ) {
 
 			if( 'connected' === data.connect_status ) {
 
@@ -2142,12 +2144,12 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'linkedin' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'linkedin' } );
 			Private.linkedin.handle_confirm( data );
 
-		} else if( 'linkedin' === data.service && 'account' === data.response_type && 'unauthorized' === data.account_status ) {
+		} else if( 'linkedin' === data.service &&  'unauthorized' === data.account_status ) {
 
 			Private.unsession( 'linkedin' );
 			Private.state.replaceCurrent( '/', 'home' );
