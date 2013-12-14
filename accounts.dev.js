@@ -412,9 +412,8 @@ var Accounts = ( function() {
         if( 'undefined' === typeof subs || null === subs ) {
 			return false;
 		}
-		console.log('event',event_name);
-		if ( 'login' === event_name ) {
-			Private.tumblr.account_request( value );
+		if ( 'login' === event_name || 'confirm' === event_name ) {
+			Private[ value.service ].account_request( value );
 		}
 		for( id in subs ) {
 			callback = subs[ id ];
