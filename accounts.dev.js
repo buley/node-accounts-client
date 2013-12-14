@@ -31,38 +31,32 @@ var Accounts = ( function() {
 		if ( 'confirm' === req.action ) {
 			this.post( url, {
 				code: req.code /* other */
-				, access_token: req.access_token /* oAuth 1 & 2 */
-				, access_token_secret: req.access_token_secret /* oAuth 1 */
-				, refresh_token: req.refresh_token /* oAuth 2 */	
-				, request_token: req.request_token /* oAuth 1 & 2 */
-				, request_token_secret: req.request_token_secret /* oAuth 1 & 2 */
 				, oauth_token: req.oauth_token
 				, oauth_verifier: req.oauth_verifier
+				, oauth_token_secret: req.oauth_token_secret
 			}, callback, {} );
 		} else if ( 'login' === req.action ) {
 			this.put( url, {
-				code: req.code /* other */
-				, access_token: req.access_token /* oAuth 1 & 2 */
-				, access_token_secret: req.access_token_secret /* oAuth 1 */
-				, refresh_token: req.refresh_token /* oAuth 2 */	
-				, request_token: req.request_token /* oAuth 1 & 2 */
+				request_token: req.request_token /* oAuth 1 & 2 */
 				, request_token_secret: req.request_token_secret /* oAuth 1 & 2 */
-				, oauth_token: req.oauth_token
-				, oauth_verifier: req.oauth_verifier
 			}, callback, {} );
 		} else {
-			this.get( url, callback, {} );
+			this.get( url, {
+				access_token: req.access_token
+				, refresh_token: req.refresh_token
+			}, callback, {} );
 		}
 		console.log('API request',url);
     };
 
-	Private.api.get = function( url, callback, headers ) {
+	Private.api.get = function( url, data, callback, headers ) {
 		headers = headers || {};
 		var that = this;
 		Private.api.ajax( {
 			type: 'GET'
 			, url: url
 			, headers: headers
+			, data: data
 			, success: function(request) {
 				var error = null
 					, response = request.response;
@@ -108,6 +102,7 @@ var Accounts = ( function() {
 	Private.api.post = function( url, data, callback, headers ) {
 		headers = headers || {};
 		var that = this;
+		console.log('post',data);
 		Private.api.ajax( {
 			type: 'POST'
 			, url: url
@@ -156,6 +151,7 @@ var Accounts = ( function() {
 			req.data = JSON.stringify( req.data );
 		}
 		request.open( req.type, req.url, true );
+		request.setRequestHeader( "User-Agent", "republish.co - v1" );
 		request.setRequestHeader( "Content-Type", "application/json" );
 		request.setRequestHeader( "Content-Length", req.data.length );
 		request.send( req.data );
