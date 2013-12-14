@@ -17,54 +17,72 @@ var Accounts = ( function() {
     for( z = 0; z < zlen; z += 1 ) {
 		Private[ Private.allServices[ z ] ] = {};
 	}
+
     Private.api = {};
+
     Private.api.request = function( req ) {
-		var url = [ 'http://api.republish.co', Private.prefix, 'login', req.service ].join( '/' );
+		var url = [ 'http://api.republish.co', Private.prefix, 'login', req.service ].join( '/' )
+			, callback = function(data) {
+				console.log('DATA',data);
+		};
 		if ( 'confirm' === req.action ) {
-			this.get( url, {} );
+			this.post( url, callback, {} );
+		} else if ( 'login' === req.action ) {
+			this.put( url, { code: req.code }, callback, {} );
 		} else {
-			this.post( url, { code: req.code }, {} );
+			this.get( url, callback, {} );
 		}
 		console.log('API request',url);
-
     };
-	Private.api.get = function( url, headers ) {
+
+	Private.api.get = function( url, callback, headers ) {
 		headers = headers || {};
 		Private.api.ajax( {
 			type: 'GET'
 			, url: url
 			, headers: headers
+			, callback: callback
 		} );
 	};
-	Private.api.put = function( url, data, headers ) {
+
+	Private.api.put = function( url, data, callback, headers ) {
 		headers = headers || {};
 		Private.api.ajax( {
 			type: 'PUT'
 			, url: url
 			, data: data
 			, headers: headers
+			, callback: callback
 		} );
 	};
-	Private.api.post = function( url, data, headers ) {
+
+	Private.api.post = function( url, data, callback, headers ) {
 		headers = headers || {};
 		Private.api.ajax( {
 			type: 'POST'
 			, url: url
 			, data: data
 			, headers: headers
+			, callback: callback
 		} );
 	};
+
 	Private.api.ajax = function(req) {
 		var request
 			, type = ( type || '' ).toUpperCase()
+			, that = this;
 		if ( 'undefined' !== typeof window.XMLHttpRequest ) {
 		  request = new XMLHttpRequest();
 		} else {
 		  request = new ActiveXObject( "Microsoft.XMLHTTP" );
 		}
 		request.onreadystatechange = function() {
+		  console.log('statechange',request);
 		  if ( 4 === request.readyState && 200 === request.status ) {
-			console.log("FINISHED",arguments)
+			console.log("FINISHED",request)
+			if ( 'function' === typeof req.success ) {
+				req.success.apply( that, [ request ] );
+			}
 		  }
 		};
 		request.open( req.type, req.url, true );
