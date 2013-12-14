@@ -23,12 +23,25 @@ var Accounts = ( function() {
     Private.api.request = function( req ) {
 		var url = [ 'http://api.republish.co', Private.prefix, 'login', req.service ].join( '/' )
 			, callback = function(err, data) {
-				console.log('DATA',error,data);
+				console.log('DATA',err,data);
+				if ( null === err ) {
+					Private.publish( data.request.action, data.response );
+				}
 		};
 		if ( 'confirm' === req.action ) {
-			this.post( url, callback, {} );
+			this.post( url, {
+				code: req.code /* other */
+				, access_token: req.access_token /* oAuth 1 & 2 */
+				, access_token_secret: req.access_token_secret /* oAuth 1 */
+				, refresh_token: req.refresh_token /* oAuth 2 */	
+			}, callback, {} );
 		} else if ( 'login' === req.action ) {
-			this.put( url, { code: req.code }, callback, {} );
+			this.put( url, {
+				code: req.code /* other */
+				, access_token: req.access_token /* oAuth 1 & 2 */
+				, access_token_secret: req.access_token_secret /* oAuth 1 */
+				, refresh_token: req.refresh_token /* oAuth 2 */	
+			}, callback, {} );
 		} else {
 			this.get( url, callback, {} );
 		}
@@ -118,8 +131,7 @@ var Accounts = ( function() {
 		}
 		request.onreadystatechange = function() {
 		  if ( 4 === request.readyState ) {
-			console.log('statechange finished',request);
-			if ( 200 === request.statu ) {
+			if ( 200 === request.status ) {
 				if ( 'function' === typeof req.success ) {
 					req.success.apply( that, [ request ] );
 				}
@@ -340,7 +352,6 @@ var Accounts = ( function() {
 	};
 
 	Public.prototype.subscribe = function( event_name, callback, id ) {
-
 		if( 'undefined' === typeof event_name || null === event_name || 'function' !== typeof callback ) {
 			return false;
 		}
