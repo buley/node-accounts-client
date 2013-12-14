@@ -22,8 +22,8 @@ var Accounts = ( function() {
 
     Private.api.request = function( req ) {
 		var url = [ 'http://api.republish.co', Private.prefix, 'login', req.service ].join( '/' )
-			, callback = function(data) {
-				console.log('DATA',data);
+			, callback = function(err, data) {
+				console.log('DATA',error,data);
 		};
 		if ( 'confirm' === req.action ) {
 			this.post( url, callback, {} );
@@ -41,18 +41,45 @@ var Accounts = ( function() {
 			type: 'GET'
 			, url: url
 			, headers: headers
-			, callback: callback
+			, success: function(request) {
+				var error = null
+					, response = request.response;
+				try {
+					response = JSON.parse( response );
+				} catch ( e ) {
+					error = e;
+				} finally {
+					callback.apply( that, [ error, response ] );
+				}
+			}
+			, error: function(request) {
+				callback.apply( that, [ new Error( 'Something went awry.' ), null ] );
+			}
 		} );
 	};
 
 	Private.api.put = function( url, data, callback, headers ) {
-		headers = headers || {};
+		headers = headers || {}
+			, that = this;
 		Private.api.ajax( {
 			type: 'PUT'
 			, url: url
 			, data: data
 			, headers: headers
-			, callback: callback
+			, success: function(request) {
+				var error = null
+					, response = request.response;
+				try {
+					response = JSON.parse( response );
+				} catch ( e ) {
+					error = e;
+				} finally {
+					callback.apply( that, [ error, response ] );
+				}
+			}
+			, error: function(request) {
+				callback.apply( that, [ new Error( 'Something went awry.' ), null ] );
+			}
 		} );
 	};
 
@@ -63,7 +90,20 @@ var Accounts = ( function() {
 			, url: url
 			, data: data
 			, headers: headers
-			, callback: callback
+			, success: function(request) {
+				var error = null
+					, response = request.response;
+				try {
+					response = JSON.parse( response );
+				} catch ( e ) {
+					error = e;
+				} finally {
+					callback.apply( that, [ error, response ] );
+				}
+			}
+			, error: function(request) {
+				callback.apply( that, [ new Error( 'Something went awry.' ), null ] );
+			}
 		} );
 	};
 
@@ -77,11 +117,16 @@ var Accounts = ( function() {
 		  request = new ActiveXObject( "Microsoft.XMLHTTP" );
 		}
 		request.onreadystatechange = function() {
-		  console.log('statechange',request);
-		  if ( 4 === request.readyState && 200 === request.status ) {
-			console.log("FINISHED",request)
-			if ( 'function' === typeof req.success ) {
-				req.success.apply( that, [ request ] );
+		  if ( 4 === request.readyState ) {
+			console.log('statechange finished',request);
+			if ( 200 === request.statu ) {
+				if ( 'function' === typeof req.success ) {
+					req.success.apply( that, [ request ] );
+				}
+			} else {
+				if ( 'function' === typeof req.success ) {
+					req.error.apply( that, [ request ] );
+				}
 			}
 		  }
 		};
