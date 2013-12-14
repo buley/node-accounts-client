@@ -1816,7 +1816,9 @@ var Accounts = ( function() {
 			if( 'tumblr' === url_vars.service ) {
 				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
-				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
+				Private.storage.session.set( 'tumblr_oauth_request_token_secret', url_vars.oauth_token_secret );
+
+				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 
 			} else if( 'yahoo' === url_vars.service ) {
@@ -2037,6 +2039,7 @@ var Accounts = ( function() {
 
 			Private.storage.session.set( 'tumblr_oauth_request_token', data.request_token );
 			Private.storage.session.set( 'tumblr_oauth_request_token_secret', data.request_token_secret );
+			console.log('REQUEST',data, data.request_token, data.request_token_secret);
 			Private.publish( 'session_redirect', { service: 'tumblr', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'tumblr', 'url': data.login_url } );
 			window.location = data.login_url;
