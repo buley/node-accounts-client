@@ -34,6 +34,10 @@ var Accounts = ( function() {
 				, access_token: req.access_token /* oAuth 1 & 2 */
 				, access_token_secret: req.access_token_secret /* oAuth 1 */
 				, refresh_token: req.refresh_token /* oAuth 2 */	
+				, request_token: req.request_token /* oAuth 1 & 2 */
+				, request_token_secret: req.request_token_secret /* oAuth 1 & 2 */
+				, oauth_token: req.oauth_token
+				, oauth_verifier: req.oauth_verifier
 			}, callback, {} );
 		} else if ( 'login' === req.action ) {
 			this.put( url, {
@@ -41,6 +45,10 @@ var Accounts = ( function() {
 				, access_token: req.access_token /* oAuth 1 & 2 */
 				, access_token_secret: req.access_token_secret /* oAuth 1 */
 				, refresh_token: req.refresh_token /* oAuth 2 */	
+				, request_token: req.request_token /* oAuth 1 & 2 */
+				, request_token_secret: req.request_token_secret /* oAuth 1 & 2 */
+				, oauth_token: req.oauth_token
+				, oauth_verifier: req.oauth_verifier
 			}, callback, {} );
 		} else {
 			this.get( url, callback, {} );
@@ -50,6 +58,7 @@ var Accounts = ( function() {
 
 	Private.api.get = function( url, callback, headers ) {
 		headers = headers || {};
+		var that = this;
 		Private.api.ajax( {
 			type: 'GET'
 			, url: url
@@ -72,8 +81,8 @@ var Accounts = ( function() {
 	};
 
 	Private.api.put = function( url, data, callback, headers ) {
-		headers = headers || {}
-			, that = this;
+		headers = headers || {};
+		var that = this;
 		Private.api.ajax( {
 			type: 'PUT'
 			, url: url
@@ -98,6 +107,7 @@ var Accounts = ( function() {
 
 	Private.api.post = function( url, data, callback, headers ) {
 		headers = headers || {};
+		var that = this;
 		Private.api.ajax( {
 			type: 'POST'
 			, url: url
