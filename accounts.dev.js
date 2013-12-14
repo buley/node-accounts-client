@@ -152,8 +152,13 @@ var Accounts = ( function() {
 			}
 		  }
 		};
+		if ( 'string' !== typeof req.data ) {
+			req.data = JSON.stringify( req.data );
+		}
 		request.open( req.type, req.url, true );
-		request.send();
+		request.setRequestHeader( "Content-Type", "application/json" );
+		request.setRequestHeader( "Content-Length", req.data.length );
+		request.send( req.data );
 	};
 
 	Private.getActiveServices = function() {
