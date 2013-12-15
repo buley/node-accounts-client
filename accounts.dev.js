@@ -2839,7 +2839,7 @@ var Accounts = ( function() {
 	Private.utilities.getUrlVars = function() {
 		var vars = {}
 			, pieces = window.document.location.href.split('?').splice(1).join('&').split('#')
-			, parts = pieces[ 0 ].replace( /[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+			, parts = ("?" + pieces[ 0 ]).replace( /[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
 			vars[key] = value;
 		} );
 		return vars;
