@@ -9,7 +9,7 @@ var Accounts = ( function() {
 
 	Private.connected = false;
 	Private.prefix = 'accounts';
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo' ];
 	Private.debug = false;
 	Private.activeServices = [];
 	zlen = Private.allServices.length;
@@ -526,6 +526,15 @@ var Accounts = ( function() {
 			case 'tumblr': 
 				access_token = Private.storage.session.get( 'tumblr_access_token' );
 				break;
+			case 'wordpress': 
+				access_token = Private.storage.session.get( 'wordpress_access_token' );
+				break;
+			case 'instagram': 
+				access_token = Private.storage.session.get( 'instagram_access_token' );
+				break;
+			case 'vimeo': 
+				access_token = Private.storage.session.get( 'vimeo_access_token' );
+				break;
 			case 'github': 
 				access_token = Private.storage.session.get( 'github_access_token' );
 				break;
@@ -593,6 +602,15 @@ var Accounts = ( function() {
 				break;
 			case 'yahoo': 
 				access_token_secret = Private.storage.session.get( 'yahoo_access_token_secret' );
+				break;
+			case 'wordpress': 
+				access_token_secret = Private.storage.session.get( 'wordpress_access_token_secret' );
+				break;
+			case 'instagram': 
+				access_token_secret = Private.storage.session.get( 'instagram_access_token_secret' );
+				break;
+			case 'vimeo': 
+				access_token_secret = Private.storage.session.get( 'vimeo_access_token_secret' );
 				break;
 			default: 
 				break;
@@ -1635,6 +1653,29 @@ var Accounts = ( function() {
 		}
 	};
 
+	/* Vimeo */
+
+	Private.vimeo.handle_confirm = function( params, on_success, on_error ) {
+
+		var data;
+		if( !!params.profile_data ) {
+			data =  params.profile_data || {};
+			data.service = 'vimeo';
+			Private.publish( 'profile', { service: 'vimeo', data: data } );
+			Private.setProfile( 'vimeo', data );
+		}
+
+		var access_token = params.access_token;
+		var access_token_secret = params.access_token_secret;
+		if( !!access_token ) {
+			Private.storage.session.set( 'vimeo_access_token', access_token );
+			Private.storage.session.set( 'vimeo_access_token_secret', access_token_secret );
+			Private.publish( 'sessioned', { service: 'vimeo', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
+		}
+
+	};
+
+
 	/* Tumblr */
 
 	Private.tumblr.handle_confirm = function( params, on_success, on_error ) {
@@ -1797,6 +1838,20 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'tumblr_oauth_request_verifier' );
 		}
 
+
+		var vimeo_token = Private.storage.session.get( 'vimeo_oauth_request_token' );
+		var vimeo_token_secret = Private.storage.session.get( 'vimeo_oauth_request_token_secret' );
+		var vimeo_verifier = Private.storage.session.get( 'vimeo_oauth_request_verifier' );
+		if( 'undefined' !== typeof vimeo_token && null !== vimeo_token && 'undefined' !== typeof vimeo_verifier && null !== vimeo_verifier ) {
+			Private.publish( 'verifying', { service: 'tumblr', 'oauth_token': vimeo_token, 'oauth_verifier': vimeo_verifier } );
+			Private.do_confirm( 'vimeo', { 'oauth_token': vimeo_token, 'oauth_token_secret': vimeo_token_secret, 'oauth_verifier': vimeo_verifier } );
+			Private.storage.session.delete( 'vimeo_oauth_request_token' );
+			Private.storage.session.delete( 'vimeo_oauth_request_token_secret' );
+			Private.storage.session.delete( 'vimeo_oauth_request_verifier' );
+		}
+
+
+
 		var yahoo_token = Private.storage.session.get( 'yahoo_oauth_request_token' );
 		var yahoo_token_secret = Private.storage.session.get( 'yahoo_oauth_request_token_secret' );
 		var yahoo_verifier = Private.storage.session.get( 'yahoo_oauth_request_verifier' );
@@ -1853,6 +1908,12 @@ var Accounts = ( function() {
 				Private.publish( 'verified', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
 		 		
+			} else if( 'vimeo' === url_vars.service ) {
+				Private.storage.session.set( 'vimeo_oauth_request_token', url_vars.oauth_token );
+				Private.storage.session.set( 'vimeo_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.publish( 'verified', { service: 'vimeo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
+				Private.state.replaceCurrent( '/', 'home' );
+		 
 			} else { //twitter doesn't use service var TODO: fix?
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
