@@ -1519,6 +1519,7 @@ var Accounts = ( function() {
 		}
 
 	};
+
     /* YouTube */
 
     Private.youtube.handle_confirm = function( params ) {
@@ -1619,24 +1620,21 @@ var Accounts = ( function() {
     Private.reddit.handle_confirm = function( params ) {
 
         var data = null;
+
         if( !!params.profile ) {
-            data =  params.profile || {};
+            data = params.profile || {};
             data.service = 'reddit';
             Private.publish( 'profile', { service: 'reddit', data: data } );
             Private.setProfile( 'reddit', data );
-
         }
 
         var access_token = params.access_token;
-        var access_token_secret = params.access_token_secret;
 
         if( !!access_token ) {
-
             Private.storage.session.set( 'reddit_access_token', access_token );
-            Private.storage.session.set( 'reddit_access_token_secret', access_token_secret );
-            Private.publish( 'sessioned', { service: 'reddit', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
-
+            Private.publish( 'sessioned', { service: 'reddit', oauth_token: access_token, profile: data } );
         }
+
     };
 
 	/* Facebook */
@@ -2044,7 +2042,12 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'wordpress_code' );
 		}
 
-
+        var reddit_code = Private.storage.session.get( 'reddit_code' );
+        if( 'undefined' !== typeof reddit_code && null !== reddit_code  ) {
+            Private.publish( 'verifying', { service: 'reddit', 'code': github_code } );
+            Private.do_confirm( 'reddit', { 'code': reddit_code } );
+            Private.storage.session.delete( 'reddit_code' );
+        }
 
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
 		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
@@ -2093,16 +2096,6 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
 		}
 
-        var reddit_token = Private.storage.session.get( 'reddit_oauth_request_token' );
-        var reddit_token_secret = Private.storage.session.get( 'reddit_oauth_request_token_secret' );
-        var reddit_verifier = Private.storage.session.get( 'reddit_oauth_request_verifier' );
-        if( 'undefined' !== typeof reddit_token && null !== reddit_token && 'undefined' !== typeof reddit_verifier && null !== reddit_verifier ) {
-            Private.publish( 'verifying', { service: 'reddit', 'oauth_token': reddit_token, 'oauth_verifier': reddit_verifier } );
-            Private.do_confirm( 'reddit', { 'oauth_token': reddit_token, 'oauth_token_secret': reddit_token_secret, 'oauth_verifier': reddit_verifier } );
-            Private.storage.session.delete( 'reddit_oauth_request_token' );
-            Private.storage.session.delete( 'reddit_oauth_request_token_secret' );
-            Private.storage.session.delete( 'reddit_oauth_request_verifier' );
-        }
 
         var evernote_token = Private.storage.session.get( 'evernote_oauth_request_token' );
         var evernote_token_secret = Private.storage.session.get( 'evernote_oauth_request_token_secret' );
@@ -2154,11 +2147,6 @@ var Accounts = ( function() {
                 Private.storage.session.set( 'evernote_oauth_request_verifier', url_vars.oauth_verifier );
                 Private.publish( 'verified', { service: 'evernote', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
                 Private.state.replaceCurrent( '/', 'home' );
-            } else if( 'reddit' === url_vars.service ) {
-                Private.storage.session.set( 'reddit_oauth_request_token', url_vars.oauth_token );
-                Private.storage.session.set( 'reddit_oauth_request_verifier', url_vars.oauth_verifier );
-                Private.publish( 'verified', { service: 'reddit', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
-                Private.state.replaceCurrent( '/', 'home' );
             } else { //twitter doesn't use service var TODO: fix?
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
@@ -2209,6 +2197,12 @@ var Accounts = ( function() {
 			Private.publish( 'verified', { service: 'wordpress', 'code': url_vars.code } );
 			Private.state.replaceCurrent( '/', 'home' );
 		}
+
+        if( 'undefined' !== typeof url_vars.code && 'reddit' === url_vars.service ) {
+            Private.storage.session.set( 'reddit_code', url_vars.code );
+            Private.publish( 'verified', { service: 'reddit', 'code': url_vars.code } );
+            Private.state.replaceCurrent( '/', 'home' );
+        }
 
         if( 'undefined' !== typeof url_vars.code && 'youtube' === url_vars.service ) {
             Private.storage.session.set( 'youtube_code', url_vars.code );
@@ -2655,8 +2649,9 @@ var Accounts = ( function() {
     Private.reddit.account_request = function( data ) {
 
         if( 'undefined' !== typeof data.logout_url ) {
-            Private.publish( 'unsession', { service: 'reddit' } );
-            Private.unsession( 'reddit' );
+
+            private.publish( 'unsession', { service: 'reddit' } );
+            private.unsession( 'reddit' );
             Private.state.replaceCurrent( '/', 'home' );
 
         } else if( 'reddit' === data.service &&  'undefined' !== typeof data.login_url ) {
@@ -2665,7 +2660,6 @@ var Accounts = ( function() {
             Private.storage.session.set( 'reddit_oauth_request_token_secret', data.request_token_secret );
             Private.publish( 'session_redirect', { service: 'reddit', 'url': data.login_url } );
             Private.publish( 'redirect', { service: 'reddit', 'url': data.login_url } );
-
             window.location = data.login_url;
 
         } else if( 'reddit' === data.service &&  'undefined' !== typeof data.connect_status ) {
@@ -2692,7 +2686,7 @@ var Accounts = ( function() {
 
         }
 
-    }
+    };
 
     /* Evernote */
 
