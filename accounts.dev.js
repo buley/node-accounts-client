@@ -2838,7 +2838,7 @@ var Accounts = ( function() {
 	// Cleverness via: http://papermashup.com/read-url-get-variables-withjavascript/
 	Private.utilities.getUrlVars = function() {
 		var vars = {}
-			, pieces = window.location.href.split( '#' )
+			, pieces = window.document.location.href.split('?').splice(1).join('&').split('#')
 			, parts = pieces[ 0 ].replace( /[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
 			vars[key] = value;
 		} );
