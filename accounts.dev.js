@@ -1439,7 +1439,7 @@ var Accounts = ( function() {
 
 		var data = null;
 		
-		if( params.profile ) {
+		if( !!params.profile ) {
 			data =  params.profile || {};
 			data.service = 'foursquare';	
 			Private.publish( 'profile', { service: 'foursquare', data: data } );
@@ -1461,7 +1461,7 @@ var Accounts = ( function() {
 		
 		var data = null;
 		
-		if( params.profile ) {
+		if( !!params.profile ) {
 			data = params.profile || {};
 			data.service = 'google';
 			Private.publish( 'profile', { service: 'google', data: data } );
@@ -1483,7 +1483,6 @@ var Accounts = ( function() {
 
 		var data = null;
 		if( !!params.profile ) {
-		
 			data =  params.profile || {};
 			data.service = 'twitter';
 			Private.publish( 'profile', { service: 'twitter', data: data } );
@@ -1522,7 +1521,7 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'facebook', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'facebook' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'facebook' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 				
 			Private.publish( 'confirm', { service: 'facebook' } );
 			Private.facebook.handle_confirm( data );	
@@ -1556,7 +1555,7 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'foursquare', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'foursquare' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'foursquare' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'foursquare' } );
 			Private.foursquare.handle_confirm( data );
@@ -1591,12 +1590,12 @@ var Accounts = ( function() {
 			Private.publish( 'redirect', { service: 'google', 'url': data.login_url } );
 			window.location = data.login_url;
 
-		} else if( 'google' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'google' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'google' } );
 			Private.google.handle_confirm( data );
 
-		} else if( 'google' === data.service &&  'authorized' === data.account_status ) {
+		} else if( 'google' === data.service &&  'authorized' === data.status ) {
 			if( 'connected' === data.connect_status ) {
 				Private.publish( 'confirmed', { service: 'google' } );
 			} else {
@@ -1618,7 +1617,7 @@ var Accounts = ( function() {
 
 		var data = null;
 		if( !!params.profile ) {
-			var data =  params.profile || {};
+			data =  params.profile || {};
 			data.service = 'yahoo';
 			Private.publish( 'profile', { service: 'yahoo', data: data } );
 			Private.setProfile( 'yahoo', data );
@@ -2026,7 +2025,7 @@ var Accounts = ( function() {
 			
 			}
 
-		} else if( 'yahoo' === data.service &&  'authorized' === data.account_status && 'authorized' === data.account_status ) {
+		} else if( 'yahoo' === data.service &&  'authorized' === data.status && 'authorized' === data.status ) {
 
 			Private.publish( 'confirm', { service: 'yahoo' } );
 			Private.yahoo.handle_confirm( data );
@@ -2063,12 +2062,12 @@ var Accounts = ( function() {
 				Private.publish( 'confirmed', { service: 'windows' } );
 			}
 
-		} else if( 'windows' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'windows' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'windows' } );
 			Private.windows.handle_confirm( data );
 
-		} else if( 'windows' === data.service &&  'unauthorized' === data.account_status ) {
+		} else if( 'windows' === data.service &&  'unauthorized' === data.status ) {
 		
 			Private.state.replaceCurrent( '/', 'home' );
 
@@ -2107,7 +2106,7 @@ var Accounts = ( function() {
 			
 			}
 
-		} else if( 'wordpress' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'wordpress' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'wordpress' } );
 			Private.wordpress.handle_confirm( data );
@@ -2153,7 +2152,7 @@ var Accounts = ( function() {
 			
 			}
 
-		} else if( 'github' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'github' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'github' } );
 			Private.github.handle_confirm( data );
@@ -2198,7 +2197,7 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'vimeo' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'vimeo' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'vimeo' } );
 			Private.vimeo.handle_confirm( data );
@@ -2243,7 +2242,7 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'tumblr' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'tumblr' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'tumblr' } );
 			Private.tumblr.handle_confirm( data );
@@ -2285,7 +2284,7 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'twitter' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'twitter' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'twitter' } );
 			Private.twitter.handle_confirm( data );
@@ -2329,7 +2328,7 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'instagram' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'instagram' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'instagram' } );
 			Private.instagram.handle_confirm( data );
@@ -2374,7 +2373,7 @@ var Accounts = ( function() {
 
 			}
 
-		} else if( 'linkedin' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+		} else if( 'linkedin' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
 			Private.publish( 'confirm', { service: 'linkedin' } );
 			Private.linkedin.handle_confirm( data );
