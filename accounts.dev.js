@@ -9,7 +9,7 @@ var Accounts = ( function() {
 
 	Private.connected = false;
 	Private.prefix = 'accounts';
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram' ];
 	Private.debug = false;
 	Private.activeServices = [];
 	zlen = Private.allServices.length;
@@ -1770,6 +1770,14 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'github_code' );
 		}
 
+		var instagram_code = Private.storage.session.get( 'instagram_code' );
+		if( 'undefined' !== typeof instagram_code && null !== instagram_code  ) {
+			Private.publish( 'verifying', { service: 'instagram', 'code': instagram_code } );
+			Private.do_confirm( 'instagram', { 'code': instagram_code } );
+			Private.storage.session.delete( 'instagram_code' );
+		}
+
+
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
 		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
 		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
@@ -1802,6 +1810,9 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'linkedin_oauth_request_token_secret' );
 			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
 		}
+
+
+
 
 	};
 
@@ -1873,6 +1884,13 @@ var Accounts = ( function() {
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
+		if( 'undefined' !== typeof url_vars.code && 'instagram' === url_vars.service ) {
+			Private.storage.session.set( 'instagram_code', url_vars.code );
+			Private.publish( 'verified', { service: 'instagram', 'code': url_vars.code } );
+			Private.state.replaceCurrent( '/', 'home' );
+		}
+
+
 	};
 
 	Private.login_statuses = function() {
@@ -1887,6 +1905,7 @@ var Accounts = ( function() {
 			, 'tumblr': 'tumblr_access_token'
 			, 'linkedin': 'linkedin_access_token'
 			, 'windows': 'windows_access_token'
+			, 'instagram': 'instagram_access_token'
 		};
 
 		var statuses = {};
@@ -2112,6 +2131,51 @@ var Accounts = ( function() {
 		}
 
 	}
+
+	/* Instagram */
+
+	Private.instagram.account_request = function( data ) {
+
+		if( 'undefined' !== typeof data.logout_url ) {
+
+			private.publish( 'unsession', { service: 'instagram' } );
+			private.unsession( 'instagram' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		} else if( 'instagram' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+			Private.storage.session.set( 'instagram_oauth_request_token', data.request_token );
+			Private.storage.session.set( 'instagram_oauth_request_token_secret', data.request_token_secret );
+			Private.publish( 'session_redirect', { service: 'instagram', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'instagram', 'url': data.login_url } );
+			window.location = data.login_url;
+
+		} else if( 'instagram' === data.service &&  'undefined' !== typeof data.connect_status ) {
+
+			if( 'connected' === data.connect_status ) {
+
+				Private.publish( 'confirmed', { service: 'instagram' } );
+
+			} else {
+
+				Private.unsession( 'instagram' );
+
+			}
+
+		} else if( 'instagram' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+
+			Private.publish( 'confirm', { service: 'instagram' } );
+			Private.instagram.handle_confirm( data );
+
+		} else if( 'instagram' === data.service &&  'unauthorized' === data.account_status ) {
+
+			Private.unsession( 'instagram' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		}
+
+	};
+
 
 	/* Linkedin */
 
