@@ -9,7 +9,7 @@ var Accounts = ( function() {
 
 	Private.connected = false;
 	Private.prefix = 'accounts';
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress' ];
 	Private.debug = false;
 	Private.activeServices = [];
 	zlen = Private.allServices.length;
@@ -1777,6 +1777,14 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'instagram_code' );
 		}
 
+		var wordpress_code = Private.storage.session.get( 'wordpress_code' );
+		if( 'undefined' !== typeof wordpress_code && null !== wordpress_code  ) {
+			Private.publish( 'verifying', { service: 'wordpress', 'code': github_code } );
+			Private.do_confirm( 'wordpress', { 'code': wordpress_code } );
+			Private.storage.session.delete( 'wordpress_code' );
+		}
+
+
 
 		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
 		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
@@ -1890,6 +1898,12 @@ var Accounts = ( function() {
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
+		if( 'undefined' !== typeof url_vars.code && 'wordpress' === url_vars.service ) {
+			Private.storage.session.set( 'wordpress_code', url_vars.code );
+			Private.publish( 'verified', { service: 'wordpress', 'code': url_vars.code } );
+			Private.state.replaceCurrent( '/', 'home' );
+		}
+
 
 	};
 
@@ -1906,6 +1920,7 @@ var Accounts = ( function() {
 			, 'linkedin': 'linkedin_access_token'
 			, 'windows': 'windows_access_token'
 			, 'instagram': 'instagram_access_token'
+			, 'wordpress': 'wordpress_access_token'
 		};
 
 		var statuses = {};
@@ -1999,6 +2014,52 @@ var Accounts = ( function() {
 		}
 
 	}
+
+
+	/* WordPress */
+
+	Private.wordpress.account_request = function( data ) {
+
+		if( 'undefined' !== typeof data.logout_url ) {
+
+			Private.publish( 'unsession', { service: 'wordpress' } );
+			Private.unsession( 'wordpress' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		} else if( 'wordpress' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+			Private.storage.session.set( 'wordpress_oauth_request_token', data.request_token );
+			Private.storage.session.set( 'wordpress_oauth_request_token_secret', data.request_token_secret );
+			Private.publish( 'session_redirect', { service: 'wordpress', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'wordpress', 'url': data.login_url } );
+			window.location = data.login_url;
+
+		} else if( 'wordpress' === data.service &&  'undefined' !== typeof data.connect_status ) {
+
+			if( 'connected' === data.connect_status ) {
+			
+				Private.publish( 'confirmed', { service: 'wordpress' } );
+
+			} else {
+
+				Private.unsession( 'wordpress' );
+			
+			}
+
+		} else if( 'wordpress' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+
+			Private.publish( 'confirm', { service: 'wordpress' } );
+			Private.wordpress.handle_confirm( data );
+
+		} else if( 'wordpress' === data.service &&  'unauthorized' === data.account_status ) {
+		
+			Private.unsession( 'wordpress' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		}
+
+	}
+
 
 
 	/* Github */
