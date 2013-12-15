@@ -1415,8 +1415,8 @@ var Accounts = ( function() {
 
 		var data = null;
 
-		if( !!params.profile_data ) {
-			data =  params.profile_data || {};
+		if( !!params.profile ) {
+			data =  params.profile || {};
 			data.service = 'facebook';
 			Private.publish( 'profile', { service: 'facebook', data: data } );
 			Private.setProfile( 'facebook', data );
@@ -1439,8 +1439,8 @@ var Accounts = ( function() {
 
 		var data = null;
 		
-		if( params.profile_data ) {
-			data =  params.profile_data || {};
+		if( params.profile ) {
+			data =  params.profile || {};
 			data.service = 'foursquare';	
 			Private.publish( 'profile', { service: 'foursquare', data: data } );
 			Private.setProfile( 'foursquare', data );
@@ -1461,8 +1461,8 @@ var Accounts = ( function() {
 		
 		var data = null;
 		
-		if( params.profile_data ) {
-			data = params.profile_data || {};
+		if( params.profile ) {
+			data = params.profile || {};
 			data.service = 'google';
 			Private.publish( 'profile', { service: 'google', data: data } );
 			Private.setProfile( 'google', data );
@@ -1482,9 +1482,9 @@ var Accounts = ( function() {
 	Private.twitter.handle_confirm = function( params ) {
 
 		var data = null;
-		if( !!params.profile_data ) {
+		if( !!params.profile ) {
 		
-			data =  params.profile_data || {};
+			data =  params.profile || {};
 			data.service = 'twitter';
 			Private.publish( 'profile', { service: 'twitter', data: data } );
 			Private.setProfile( 'twitter', data );
@@ -1617,8 +1617,8 @@ var Accounts = ( function() {
 	Private.yahoo.handle_confirm = function( params ) {
 
 		var data = null;
-		if( !!params.profile_data ) {
-			var data =  params.profile_data || {};
+		if( !!params.profile ) {
+			var data =  params.profile || {};
 			data.service = 'yahoo';
 			Private.publish( 'profile', { service: 'yahoo', data: data } );
 			Private.setProfile( 'yahoo', data );
@@ -1637,8 +1637,8 @@ var Accounts = ( function() {
 
 	Private.linkedin.handle_confirm = function( params ) {
 		var data = null;
-		if( !!params.profile_data ) {
-			data = params.profile_data || {};
+		if( !!params.profile ) {
+			data = params.profile || {};
 			data.service = 'linkedin';
 			Private.publish( 'profile', { service: 'linkedin', data: data } );
 			Private.setProfile( 'linkedin', data );
@@ -1658,8 +1658,8 @@ var Accounts = ( function() {
 	Private.vimeo.handle_confirm = function( params, on_success, on_error ) {
 
 		var data;
-		if( !!params.profile_data ) {
-			data =  params.profile_data || {};
+		if( !!params.profile ) {
+			data =  params.profile || {};
 			data.service = 'vimeo';
 			Private.publish( 'profile', { service: 'vimeo', data: data } );
 			Private.setProfile( 'vimeo', data );
@@ -1681,8 +1681,8 @@ var Accounts = ( function() {
 	Private.tumblr.handle_confirm = function( params, on_success, on_error ) {
 
 		var data;
-		if( !!params.profile_data ) {
-			data =  params.profile_data || {};
+		if( !!params.profile ) {
+			data =  params.profile || {};
 			data.service = 'tumblr';
 			Private.publish( 'profile', { service: 'tumblr', data: data } );
 			Private.setProfile( 'tumblr', data );
@@ -1702,8 +1702,8 @@ var Accounts = ( function() {
 
 	Private.windows.handle_confirm = function( params ) {
 
-		if( params.profile_data ) {
-			var data =  params.profile_data || {};
+		if( params.profile ) {
+			var data =  params.profile || {};
 			data.service = 'windows';	
 			Private.publish( 'profile', { service: 'windows', data: data } );
 			Private.setProfile( 'windows', data );
@@ -1724,8 +1724,8 @@ var Accounts = ( function() {
 
 	Private.github.handle_confirm = function( params ) {
 
-		if( params.profile_data ) {
-			var data =  params.profile_data || {};
+		if( params.profile ) {
+			var data =  params.profile || {};
 			data.service = 'github';	
 			Private.publish( 'profile', { service: 'github', data: data } );
 			Private.setProfile( 'github', data );
@@ -1746,8 +1746,8 @@ var Accounts = ( function() {
 	Private.twitter.handle_confirm = function( params ) {
 
 		var data = null;
-		if( !!params.profile_data ) {
-			data =  params.profile_data || {};
+		if( !!params.profile ) {
+			data =  params.profile || {};
 			data.service = 'twitter';
 			Private.publish( 'profile', { service: 'twitter', data: data } );
 			Private.setProfile( 'twitter', data );
