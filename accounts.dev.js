@@ -218,12 +218,19 @@ var Accounts = ( function() {
 			case 'facebook': result = 'Facebook'; break;
 			case 'twitter': result = 'Twitter'; break;
 			case 'github': result = 'Github'; break;
-			case 'google': result = 'Google'; break;
+			case 'google': result = 'Google+'; break;
 			case 'tumblr': result = 'Tumblr'; break;
 			case 'yahoo': result = 'Yahoo'; break;
 			case 'foursquare': result = 'Foursquare'; break;
 			case 'linkedin': result = 'Linkedin'; break;
 			case 'windows': result = 'Windows Live'; break;
+            case 'evernote': result = 'Evernote'; break;
+            case 'instagram': result = 'Instagram'; break;
+            case 'vimeo': result = 'Vimeo'; break;
+            case 'blogger': result = 'Blogger'; break;
+            case 'wordpress': result = 'WordPress'; break;
+            case 'reddit': result = 'Reddit'; break;
+            case 'youtube': result = 'YouTube'; break;
 			default: break;
 		};
 		return result;
@@ -454,6 +461,18 @@ var Accounts = ( function() {
                 case 'windows':
                     Private.windows.account_request( response );
                     break;
+                case 'reddit':
+                    Private.reddit.account_request( response );
+                    break;
+                case 'evernote':
+                    Private.evernote.account_request( response );
+                    break;
+                case 'blogger':
+                    Private.blogger.account_request( response );
+                    break;
+                case 'youtube':
+                    Private.youtube.account_request( response );
+                    break;
                 default:
                     break;
             }
@@ -544,7 +563,19 @@ var Accounts = ( function() {
 			case 'linkedin':
 				access_token = Private.storage.session.get( 'linkedin_access_token' );
 				break;
-			default: 
+            case 'reddit':
+                access_token = Private.storage.session.get( 'reddit_access_token' );
+                break;
+            case 'youtube':
+                access_token = Private.storage.session.get( 'youtube_access_token' );
+                break;
+            case 'blogger':
+                access_token = Private.storage.session.get( 'blogger_access_token' );
+                break;
+            case 'evernote':
+                access_token = Private.storage.session.get( 'evernote_access_token' );
+                break;
+			default:
 				break;
 		};
 		return access_token;
@@ -612,7 +643,19 @@ var Accounts = ( function() {
 			case 'vimeo': 
 				access_token_secret = Private.storage.session.get( 'vimeo_access_token_secret' );
 				break;
-			default: 
+            case 'reddit':
+                access_token_secret = Private.storage.session.get( 'reddit_access_token_secret' );
+                break;
+            case 'youtube':
+                access_token_secret = Private.storage.session.get( 'youtube_access_token_secret' );
+                break;
+            case 'blogger':
+                access_token_secret = Private.storage.session.get( 'blogger_access_token_secret' );
+                break;
+            case 'evernote':
+                access_token_secret = Private.storage.session.get( 'evernote_access_token_secret' );
+                break;
+			default:
 				break;
 		};
 		return access_token_secret;
@@ -1476,6 +1519,49 @@ var Accounts = ( function() {
 		}
 
 	};
+    /* YouTube */
+
+    Private.youtube.handle_confirm = function( params ) {
+
+        var data = null;
+
+        if( !!params.profile ) {
+            data = params.profile || {};
+            data.service = 'youtube';
+            Private.publish( 'profile', { service: 'youtube', data: data } );
+            Private.setProfile( 'youtube', data );
+        }
+
+        var access_token = params.access_token;
+
+        if( !!access_token ) {
+            Private.storage.session.set( 'youtube_access_token', access_token );
+            Private.publish( 'sessioned', { service: 'youtube', oauth_token: access_token, profile: data } );
+        }
+
+    };
+
+    /* Blogger */
+
+    Private.blogger.handle_confirm = function( params ) {
+
+        var data = null;
+
+        if( !!params.profile ) {
+            data = params.profile || {};
+            data.service = 'blogger';
+            Private.publish( 'profile', { service: 'blogger', data: data } );
+            Private.setProfile( 'blogger', data );
+        }
+
+        var access_token = params.access_token;
+
+        if( !!access_token ) {
+            Private.storage.session.set( 'blogger_access_token', access_token );
+            Private.publish( 'sessioned', { service: 'blogger', oauth_token: access_token, profile: data } );
+        }
+
+    };
 
 	/* Twitter */
 
@@ -1501,6 +1587,57 @@ var Accounts = ( function() {
 		
 		}
 	};
+
+
+    /* Evernote */
+
+    Private.evernote.handle_confirm = function( params ) {
+
+        var data = null;
+        if( !!params.profile ) {
+            data =  params.profile || {};
+            data.service = 'evernote';
+            Private.publish( 'profile', { service: 'evernote', data: data } );
+            Private.setProfile( 'evernote', data );
+
+        }
+
+        var access_token = params.access_token;
+        var access_token_secret = params.access_token_secret;
+
+        if( !!access_token ) {
+
+            Private.storage.session.set( 'evernote_access_token', access_token );
+            Private.storage.session.set( 'evernote_access_token_secret', access_token_secret );
+            Private.publish( 'sessioned', { service: 'evernote', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
+
+        }
+    };
+
+    /* Reddit */
+
+    Private.reddit.handle_confirm = function( params ) {
+
+        var data = null;
+        if( !!params.profile ) {
+            data =  params.profile || {};
+            data.service = 'reddit';
+            Private.publish( 'profile', { service: 'reddit', data: data } );
+            Private.setProfile( 'reddit', data );
+
+        }
+
+        var access_token = params.access_token;
+        var access_token_secret = params.access_token_secret;
+
+        if( !!access_token ) {
+
+            Private.storage.session.set( 'reddit_access_token', access_token );
+            Private.storage.session.set( 'reddit_access_token_secret', access_token_secret );
+            Private.publish( 'sessioned', { service: 'reddit', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
+
+        }
+    };
 
 	/* Facebook */
 
@@ -1575,6 +1712,75 @@ var Accounts = ( function() {
 		}
 
 	}
+    /* Blogger */
+
+    Private.blogger.account_request = function( data ) {
+
+        if( 'undefined' !== typeof data.logout_url ) {
+            Private.publish( 'unsession', { service: 'blogger' } );
+            Private.unsession( 'blogger' );
+            Private.state.replaceCurrent( '/', 'home' );
+        } else if( 'blogger' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+            Private.publish( 'session_redirect', { service: 'blogger', 'url': data.login_url } );
+            Private.publish( 'redirect', { service: 'blogger', 'url': data.login_url } );
+            window.location = data.login_url;
+
+        } else if( 'blogger' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
+
+            Private.publish( 'confirm', { service: 'blogger' } );
+            Private.blogger.handle_confirm( data );
+
+        } else if( 'blogger' === data.service &&  'authorized' === data.status ) {
+            if( 'connected' === data.connect_status ) {
+                Private.publish( 'confirmed', { service: 'blogger' } );
+            } else {
+                Private.unsession( 'blogger' );
+            }
+
+        } else if( 'blogger' === data.service &&  'unauthorized' === data.account_status ) {
+
+            Private.unsession( 'blogger' );
+            Private.state.replaceCurrent( '/', 'home' );
+
+        }
+
+    }
+
+    /* YouTube */
+
+    Private.youtube.account_request = function( data ) {
+
+        if( 'undefined' !== typeof data.logout_url ) {
+            Private.publish( 'unsession', { service: 'youtube' } );
+            Private.unsession( 'youtube' );
+            Private.state.replaceCurrent( '/', 'home' );
+        } else if( 'youtube' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+            Private.publish( 'session_redirect', { service: 'youtube', 'url': data.login_url } );
+            Private.publish( 'redirect', { service: 'youtube', 'url': data.login_url } );
+            window.location = data.login_url;
+
+        } else if( 'youtube' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
+
+            Private.publish( 'confirm', { service: 'youtube' } );
+            Private.youtube.handle_confirm( data );
+
+        } else if( 'youtube' === data.service &&  'authorized' === data.status ) {
+            if( 'connected' === data.connect_status ) {
+                Private.publish( 'confirmed', { service: 'youtube' } );
+            } else {
+                Private.unsession( 'youtube' );
+            }
+
+        } else if( 'youtube' === data.service &&  'unauthorized' === data.account_status ) {
+
+            Private.unsession( 'youtube' );
+            Private.state.replaceCurrent( '/', 'home' );
+
+        }
+
+    }
 
 	/* Google */
 
@@ -1796,6 +2002,20 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'google_code' );
 		}
 
+        var blogger_code = Private.storage.session.get( 'blogger_code' );
+        if( 'undefined' !== typeof blogger_code && null !== blogger_code ) {
+            Private.publish( 'verifying', { service: 'blogger', 'code': blogger_code } );
+            Private.do_confirm( 'blogger', { 'code': blogger_code } );
+            Private.storage.session.delete( 'blogger_code' );
+        }
+
+        var youtube_code = Private.storage.session.get( 'youtube_code' );
+        if( 'undefined' !== typeof youtube_code && null !== youtube_code ) {
+            Private.publish( 'verifying', { service: 'youtube', 'code': youtube_code } );
+            Private.do_confirm( 'youtube', { 'code': youtube_code } );
+            Private.storage.session.delete( 'youtube_code' );
+        }
+
 		var windows_code = Private.storage.session.get( 'windows_code' );
 		if( 'undefined' !== typeof windows_code && null !== windows_code  ) {
 			Private.publish( 'verifying', { service: 'windows', 'code': windows_code } );
@@ -1873,7 +2093,27 @@ var Accounts = ( function() {
 			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
 		}
 
+        var reddit_token = Private.storage.session.get( 'reddit_oauth_request_token' );
+        var reddit_token_secret = Private.storage.session.get( 'reddit_oauth_request_token_secret' );
+        var reddit_verifier = Private.storage.session.get( 'reddit_oauth_request_verifier' );
+        if( 'undefined' !== typeof reddit_token && null !== reddit_token && 'undefined' !== typeof reddit_verifier && null !== reddit_verifier ) {
+            Private.publish( 'verifying', { service: 'reddit', 'oauth_token': reddit_token, 'oauth_verifier': reddit_verifier } );
+            Private.do_confirm( 'reddit', { 'oauth_token': reddit_token, 'oauth_token_secret': reddit_token_secret, 'oauth_verifier': reddit_verifier } );
+            Private.storage.session.delete( 'reddit_oauth_request_token' );
+            Private.storage.session.delete( 'reddit_oauth_request_token_secret' );
+            Private.storage.session.delete( 'reddit_oauth_request_verifier' );
+        }
 
+        var evernote_token = Private.storage.session.get( 'evernote_oauth_request_token' );
+        var evernote_token_secret = Private.storage.session.get( 'evernote_oauth_request_token_secret' );
+        var evernote_verifier = Private.storage.session.get( 'evernote_oauth_request_verifier' );
+        if( 'undefined' !== typeof evernote_token && null !== evernote_token && 'undefined' !== typeof evernote_verifier && null !== evernote_verifier ) {
+            Private.publish( 'verifying', { service: 'evernote', 'oauth_token': evernote_token, 'oauth_verifier': evernote_verifier } );
+            Private.do_confirm( 'evernote', { 'oauth_token': evernote_token, 'oauth_token_secret': evernote_token_secret, 'oauth_verifier': evernote_verifier } );
+            Private.storage.session.delete( 'evernote_oauth_request_token' );
+            Private.storage.session.delete( 'evernote_oauth_request_token_secret' );
+            Private.storage.session.delete( 'evernote_oauth_request_verifier' );
+        }
 
 
 	};
@@ -1894,26 +2134,32 @@ var Accounts = ( function() {
 				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
 				Private.state.replaceCurrent( '/', 'home' );
-		 
 			} else if( 'yahoo' === url_vars.service ) {
 				Private.storage.session.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'yahoo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
-		 		
 			} else if( 'linkedin' === url_vars.service ) {
 				Private.storage.session.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( '/', 'home' );
-		 		
 			} else if( 'vimeo' === url_vars.service ) {
 				Private.storage.session.set( 'vimeo_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'vimeo_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'vimeo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
 				Private.state.replaceCurrent( '/', 'home' );
-		 
-			} else { //twitter doesn't use service var TODO: fix?
+			} else if( 'evernote' === url_vars.service ) {
+                Private.storage.session.set( 'evernote_oauth_request_token', url_vars.oauth_token );
+                Private.storage.session.set( 'evernote_oauth_request_verifier', url_vars.oauth_verifier );
+                Private.publish( 'verified', { service: 'evernote', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
+                Private.state.replaceCurrent( '/', 'home' );
+            } else if( 'reddit' === url_vars.service ) {
+                Private.storage.session.set( 'reddit_oauth_request_token', url_vars.oauth_token );
+                Private.storage.session.set( 'reddit_oauth_request_verifier', url_vars.oauth_verifier );
+                Private.publish( 'verified', { service: 'reddit', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
+                Private.state.replaceCurrent( '/', 'home' );
+            } else { //twitter doesn't use service var TODO: fix?
 				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
 				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
@@ -1964,6 +2210,17 @@ var Accounts = ( function() {
 			Private.state.replaceCurrent( '/', 'home' );
 		}
 
+        if( 'undefined' !== typeof url_vars.code && 'youtube' === url_vars.service ) {
+            Private.storage.session.set( 'youtube_code', url_vars.code );
+            Private.publish( 'verified', { service: 'youtube', 'code': url_vars.code } );
+            Private.state.replaceCurrent( '/', 'home' );
+        }
+
+        if( 'undefined' !== typeof url_vars.code && 'blogger' === url_vars.service ) {
+            Private.storage.session.set( 'blogger_code', url_vars.code );
+            Private.publish( 'verified', { service: 'blogger', 'code': url_vars.code } );
+            Private.state.replaceCurrent( '/', 'home' );
+        }
 
 	};
 
@@ -1981,6 +2238,11 @@ var Accounts = ( function() {
 			, 'windows': 'windows_access_token'
 			, 'instagram': 'instagram_access_token'
 			, 'wordpress': 'wordpress_access_token'
+            , 'vimeo': 'wordpress_access_token'
+            , 'blogger': 'blogger_access_token'
+            , 'youtube': 'youtube_access_token'
+            , 'evernote': 'evernote_access_token'
+            , 'reddit': 'reddit_access_token'
 		};
 
 		var statuses = {};
@@ -2387,7 +2649,97 @@ var Accounts = ( function() {
 
 	};
 
-	/* History */
+
+    /* Reddit */
+
+    Private.reddit.account_request = function( data ) {
+
+        if( 'undefined' !== typeof data.logout_url ) {
+            Private.publish( 'unsession', { service: 'reddit' } );
+            Private.unsession( 'reddit' );
+            Private.state.replaceCurrent( '/', 'home' );
+
+        } else if( 'reddit' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+            Private.storage.session.set( 'reddit_oauth_request_token', data.request_token );
+            Private.storage.session.set( 'reddit_oauth_request_token_secret', data.request_token_secret );
+            Private.publish( 'session_redirect', { service: 'reddit', 'url': data.login_url } );
+            Private.publish( 'redirect', { service: 'reddit', 'url': data.login_url } );
+
+            window.location = data.login_url;
+
+        } else if( 'reddit' === data.service &&  'undefined' !== typeof data.connect_status ) {
+
+            if( 'connected' === data.connect_status ) {
+
+                Private.publish( 'confirmed', { service: 'reddit' } );
+
+            } else {
+
+                Private.unsession( 'reddit' );
+
+            }
+
+        } else if( 'reddit' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
+
+            Private.publish( 'confirm', { service: 'reddit' } );
+            Private.reddit.handle_confirm( data );
+
+        } else if( 'reddit' === data.service &&  'unauthorized' === data.account_status ) {
+
+            Private.unsession( 'reddit' );
+            Private.state.replaceCurrent( '/', 'home' );
+
+        }
+
+    }
+
+    /* Evernote */
+
+    Private.evernote.account_request = function( data ) {
+
+        if( 'undefined' !== typeof data.logout_url ) {
+            Private.publish( 'unsession', { service: 'evernote' } );
+            Private.unsession( 'evernote' );
+            Private.state.replaceCurrent( '/', 'home' );
+
+        } else if( 'evernote' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+            Private.storage.session.set( 'evernote_oauth_request_token', data.request_token );
+            Private.storage.session.set( 'evernote_oauth_request_token_secret', data.request_token_secret );
+            Private.publish( 'session_redirect', { service: 'evernote', 'url': data.login_url } );
+            Private.publish( 'redirect', { service: 'evernote', 'url': data.login_url } );
+
+            window.location = data.login_url;
+
+        } else if( 'evernote' === data.service &&  'undefined' !== typeof data.connect_status ) {
+
+            if( 'connected' === data.connect_status ) {
+
+                Private.publish( 'confirmed', { service: 'evernote' } );
+
+            } else {
+
+                Private.unsession( 'evernote' );
+
+            }
+
+        } else if( 'evernote' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
+
+            Private.publish( 'confirm', { service: 'evernote' } );
+            Private.evernote.handle_confirm( data );
+
+        } else if( 'evernote' === data.service &&  'unauthorized' === data.account_status ) {
+
+            Private.unsession( 'evernote' );
+            Private.state.replaceCurrent( '/', 'home' );
+
+        }
+
+    }
+
+
+    /* History */
 
 	Private.state = Private.state || {};
 	Private.history = window.history;
