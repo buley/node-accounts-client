@@ -9,7 +9,7 @@ var Accounts = ( function() {
 
 	Private.connected = false;
 	Private.prefix = 'accounts';
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo', 'youtube', 'blogger', 'evernote', 'reddit' ];
 	Private.debug = false;
 	Private.activeServices = [];
 	zlen = Private.allServices.length;
