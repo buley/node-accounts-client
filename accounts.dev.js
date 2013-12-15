@@ -2168,6 +2168,51 @@ var Accounts = ( function() {
 	}
 
 
+	/* Vimeo */
+
+	Private.vimeo.account_request = function( data ) {
+
+		if( 'undefined' !== typeof data.logout_url ) {
+			Private.publish( 'unsession', { service: 'vimeo' } );
+			Private.unsession( 'vimeo' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		} else if( 'vimeo' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+			Private.storage.session.set( 'vimeo_oauth_request_token', data.request_token );
+			Private.storage.session.set( 'vimeo_oauth_request_token_secret', data.request_token_secret );
+			Private.publish( 'session_redirect', { service: 'vimeo', 'url': data.login_url } );
+			Private.publish( 'redirect', { service: 'vimeo', 'url': data.login_url } );
+
+			window.location = data.login_url;
+
+		} else if( 'vimeo' === data.service &&  'undefined' !== typeof data.connect_status ) {
+
+			if( 'connected' === data.connect_status ) {
+			
+				Private.publish( 'confirmed', { service: 'vimeo' } );
+			
+			} else {
+
+				Private.unsession( 'vimeo' );
+
+			}
+
+		} else if( 'vimeo' === data.service &&  'authorized' === data.account_status && 'undefined' === typeof data.connect_status ) {
+
+			Private.publish( 'confirm', { service: 'vimeo' } );
+			Private.vimeo.handle_confirm( data );
+
+		} else if( 'vimeo' === data.service &&  'unauthorized' === data.account_status ) {
+
+			Private.unsession( 'vimeo' );
+			Private.state.replaceCurrent( '/', 'home' );
+
+		}
+
+	}
+
+
 	/* Tumblr */
 
 	Private.tumblr.account_request = function( data ) {
