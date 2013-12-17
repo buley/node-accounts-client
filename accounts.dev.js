@@ -668,7 +668,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
 			return false;
 		}
-		Private.storage.session.set( Private.prefix + '_' + type + '_access_token_secret', secret );
+		Private.storage.session.set( type + '_access_token_secret', secret );
 	};
 
 	Private.getProfiles = function () {
@@ -682,7 +682,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || null === type ) {
 			return Private.getUnifiedProfile();
 		}
-		return Private.storage.local.get( Private.prefix + '_' + type + '_profile' );
+		return Private.storage.local.get( type + '_profile' );
 	};
 	
 	Private.setProfile = function ( type, data ) {
@@ -692,7 +692,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof data || null === type || null === data ) {
 			return false;
 		}
-		return Private.storage.local.set( Private.prefix + '_' + type + '_profile', data );
+		return Private.storage.local.set( type + '_profile', data );
 	};
 
 
