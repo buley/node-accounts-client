@@ -1462,6 +1462,31 @@ var Accounts = ( function() {
 
 	};
 
+	/* Instagram */
+
+	Private.instagram.handle_confirm = function( params ) {
+
+		var data = null;
+
+		if( !!params.profile ) {
+			data =  params.profile || {};
+			data.service = 'instagram';
+			Private.publish( 'profile', { service: 'instagram', data: data } );
+			Private.setProfile( 'instagram', data );
+		}	
+
+		var access_token = params.access_token;
+
+		if( !!access_token ) {
+
+			Private.storage.session.set( 'instagram_access_token', access_token );
+			Private.publish( 'sessioned', { service: 'instagram', oauth_token: access_token, profile: data } );
+
+		}
+
+	};
+
+
 	/* Facebook */
 
 	Private.facebook.handle_confirm = function( params ) {
@@ -1507,6 +1532,29 @@ var Accounts = ( function() {
 		}
 
 	};
+
+	/* WordPress */
+
+	Private.wordpress.handle_confirm = function( params ) {
+		
+		var data = null;
+		
+		if( !!params.profile ) {
+			data = params.profile || {};
+			data.service = 'wordpress';
+			Private.publish( 'profile', { service: 'wordpress', data: data } );
+			Private.setProfile( 'wordpress', data );
+		}
+
+		var access_token = params.access_token;
+		
+		if( !!access_token ) {
+			Private.storage.session.set( 'wordpress_access_token', access_token );
+			Private.publish( 'sessioned', { service: 'wordpress', oauth_token: access_token, profile: data } );
+		}
+
+	};
+
 
 	/* Google */
 
@@ -2346,31 +2394,19 @@ var Accounts = ( function() {
 			Private.publish( 'session_redirect', { service: 'wordpress', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'wordpress', 'url': data.login_url } );
 			window.location = data.login_url;
-
 		} else if( 'wordpress' === data.service &&  'undefined' !== typeof data.connect_status ) {
-
 			if( 'connected' === data.connect_status ) {
-			
 				Private.publish( 'confirmed', { service: 'wordpress' } );
-
 			} else {
-
 				Private.unsession( 'wordpress' );
-			
 			}
-
 		} else if( 'wordpress' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
-
 			Private.publish( 'confirm', { service: 'wordpress' } );
 			Private.wordpress.handle_confirm( data );
-
 		} else if( 'wordpress' === data.service &&  'unauthorized' === data.account_status ) {
-		
 			Private.unsession( 'wordpress' );
 			Private.state.replaceCurrent( Private.redirectTo );
-
 		}
-
 	}
 
 
