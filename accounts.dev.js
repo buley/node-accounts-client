@@ -11,6 +11,7 @@ var Accounts = ( function() {
 	Private.prefix = 'accounts';
 	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo', 'youtube', 'blogger', 'evernote', 'reddit' ];
 	Private.debug = false;
+	Private.unhelpfulErrorMessage = 'Something went awry.';
 	Private.activeServices = [];
 	zlen = Private.allServices.length;
 
@@ -67,7 +68,7 @@ var Accounts = ( function() {
 				}
 			}
 			, error: function(request) {
-				callback.apply( that, [ new Error( 'Something went awry.' ), null ] );
+				callback.apply( that, [ new Error( Private.unhelpfulErrorMessage ), null ] );
 			}
 		} );
 	};
@@ -92,7 +93,7 @@ var Accounts = ( function() {
 				}
 			}
 			, error: function(request) {
-				callback.apply( that, [ new Error( 'Something went awry.' ), null ] );
+				callback.apply( that, [ new Error( Private.unhelpfulErrorMessage ), null ] );
 			}
 		} );
 	};
@@ -117,7 +118,7 @@ var Accounts = ( function() {
 				}
 			}
 			, error: function(request) {
-				callback.apply( that, [ new Error( 'Something went awry.' ), null ] );
+				callback.apply( that, [ new Error( Private.unhelpfulErrorMessage ), null ] );
 			}
 		} );
 	};
@@ -148,9 +149,7 @@ var Accounts = ( function() {
 			req.data = JSON.stringify( req.data );
 		}
 		request.open( req.type, req.url, true );
-		request.setRequestHeader( "User-Agent", "republish.co - v1" );
 		request.setRequestHeader( "Content-Type", "application/json" );
-		request.setRequestHeader( "Content-Length", req.data.length );
 		request.send( req.data );
 	};
 
@@ -342,6 +341,10 @@ var Accounts = ( function() {
 		return Private.getProfile( type );
 	};
 	
+	Public.prototype.options = function() {
+		return Private.getAllProfileAttributes();
+	};
+	
 	Public.prototype.profiles = function() {
 		return Private.getProfiles();
 	};
@@ -519,6 +522,180 @@ var Accounts = ( function() {
 		}
 		return Private.getProfileIds()[ type ];
 	};
+	Private.getStats = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileStats()[ type ];
+	};
+	Private.getUrl = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileURLs()[ type ];
+	};
+	Private.getPersonalUrl = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfilePersonalURLs()[ type ];
+	};
+
+
+	Private.getImage = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileImages()[ type ];
+	};
+	Private.getUsername = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileUsernames()[ type ];
+	};
+	Private.getIds = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileIds()[ type ];
+	};
+	Private.getBirthdate = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileBirthdates()[ type ];
+	};
+	Private.getDescription = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileDescriptions()[ type ];
+	};
+	Private.getEmail = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileEmails()[ type ];
+	};
+	Private.getGender = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileGenders()[ type ];
+	};
+	Private.getLocale = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileLocales()[ type ];
+	};
+	Private.getLocation = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileLocations()[ type ];
+	};
+	Private.getName = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileNames()[ type ];
+	};
+	Private.getUrls = function( type ) {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileUrls()[ type ];
+	};
+	Private.getUsernames = function() {
+		if( Public.prototype.disabled( type ) ) {
+			return null;
+		}
+		return Private.getProfileUsernames()[ type ];
+	};
+
+
+	Private.getProfileAttributeByService = function (service, attr) {
+		var val;
+		switch( attr ) {
+			case 'id':
+				val = Private.getId(service);
+				break;
+			case 'username':
+				val = Private.getUsername(service);
+				break;
+			case 'profile_url':
+				val = Private.getUrl(service);
+				break;
+			case 'personal_url':
+				val = Private.getPersonalUrl(service);
+				break;
+			case 'name':
+				val = Private.getName(service);
+				break;
+			case 'location':
+				val = Private.getLocation(service);
+				break;
+			case 'stats':
+				val = Private.getStats(service);
+				break;
+			case 'locale':
+				val = Private.getLocale(service);
+				break;
+			case 'image':
+				val = Private.getImage(service);
+				break;
+			case 'gender':
+				val = Private.getGenders(service);
+				break;
+			case 'email':
+				val = Private.getEmail(service);
+				break;
+			case 'description':
+				val = Private.getDescription(service);
+				break;
+			case 'birthdate':
+				val = Private.getBirthdate(service);
+				break;
+			default:
+				break;
+		}
+		return val;
+	};
+
+	Private.getAllProfileAttributes = function() {
+		var attrs = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ]
+			, attrlen = attrs.length
+			, attr
+			, x = 0
+			, result = {};
+		for ( ; x < attrlen ; x += 1 ) {
+			attr = attrs[ x ];
+			result[ attr ] = Private.getAllByProfileAttribute( attr );
+		}
+		return result;
+	};
+
+	Private.getAllByProfileAttribute = function (attr) {
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , id
+			, val
+			, result = [];
+		for( service in services ) {
+			profile = services[ service ];
+			if( profile !== null ) {
+				val = Private.getProfileAttributeByService( service, attr );
+				if ( null !== val ) {
+					result.push( val )
+				}
+			}
+		};
+		return result;
+	};
+
 
 	Private.getAccessTokens = function() {
 		var services = Private.getActiveServices();
@@ -744,10 +921,27 @@ var Accounts = ( function() {
 					case 'yahoo':
 						id = profile.guid;
 						break;
+                    case 'instagram':
+						id = profile.id;
+                        break;
+                    case 'wordpress':
+						id = profile.ID;
+                        break;
+                    case 'vimeo':
+						id = profile.id;
+                        break;
+                    case 'youtube':
+						id = profile.id;
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+						id = profile.id;
+                        break;
 					default:
 						break;
 				};
-				profiles[ service ] = id;
+				profiles[ service ] = ( 'undefined' !== typeof id && '' !== id ) ? id : null;
 			} else {
 				profiles[ service ] = null;
 			}
@@ -756,7 +950,7 @@ var Accounts = ( function() {
 	};
 
 
-	Private.getProfileDisplayNames = function () {
+	Private.getProfileNames = function () {
 		var services = Private.getUnifiedProfiles()
             , attr
             , profile
@@ -766,7 +960,6 @@ var Accounts = ( function() {
 			profile = services[ service ];
 			names = { display: null, first: null, last: null };
 			if( null !== profile ) {
-
 				switch( service ) {
 					case 'facebook':
 						names.display = profile.name;
@@ -791,22 +984,43 @@ var Accounts = ( function() {
 						names.last = profile.lastName;
 						break;
 					case 'tumblr':
+						names = null;
 						break;
 					case 'twitter': 
 						names.display = profile.name;
 						break;
 					case 'yahoo':
+						names = null;
 						break;
 					case 'windows':
 						names.display = profile.name;
 						names.first = profile.first_name;
 						names.last = profile.last_name;
 						break;		
+                    case 'instagram':
+                        names.display = profile.full_name;
+                        break;
+                    case 'wordpress':
+                        names.display = profile.display_name;
+                        break;
+                    case 'vimeo':
+                        names.display = profile.display_name;
+                        break;
+                    case 'youtube':
+                        names.display = profile.snippet.title;
+                        break;
+                    case 'blogger':
+						names = null;
+                        break;
+                    case 'reddit':
+						names = null;
+                        break;
 					default:
+						names = null;
 						break;
 				};
 			}
-			profiles[ service ] = names;
+			profiles[ service ] = ( 'undefined' !== typeof names && '' !== names ) ? names : null;
 		};
 		return profiles;
 	};
@@ -852,11 +1066,23 @@ var Accounts = ( function() {
 							gender = profile.gender;
 						}
 						break;
+                    case 'instagram':
+                        break;
+                    case 'wordpress':
+                        break;
+                    case 'vimeo':
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = gender;
+			profiles[ service ] = ( 'undefined' !== typeof gender && '' !== gender ) ? gender : null;
 		};
 		return profiles;
 	};
@@ -873,35 +1099,72 @@ var Accounts = ( function() {
 			if( null !== profile ) {
 				switch( service ) {
 					case 'facebook':
-						birthdate.day = new Date( profile.birthday ).getDate();
-						birthdate.month = new Date( profile.birthday ).getMonth() + 1;
-						birthdate.year = new Date( profile.birthday ).getFullYear();
+						if ( 'undefined' !== typeof profile.birthday && null !== profile.birthday ) {
+							birthdate.day = new Date( profile.birthday ).getDate();
+							birthdate.month = new Date( profile.birthday ).getMonth() + 1;
+							birthdate.year = new Date( profile.birthday ).getFullYear();
+						} else {
+							birthdate = null;
+						}
 						break;
 					case 'foursquare':
+						birthdate = null;
 						break;
 					case 'github':
+						birthdate = null;
 						break;
 					case 'google':
+						birthdate = null;
 						break;
 					case 'linkedin':
+						birthdate = null;
 						break;
 					case 'tumblr':
+						birthdate = null;
 						break;
 					case 'twitter': 
+						birthdate = null;
 						break;
 					case 'windows':
-						birthdate.day = profile.birth_day;
-						birthdate.month = profile.birth_month;
-						birthdate.year = profile.birth_year;
+						if ( null !== profile.birth_day || null !== profile.birth_month || null !== profile.birth_year ) {
+							birthdate.day = profile.birth_day;
+							birthdate.month = profile.birth_month;
+							birthdate.year = profile.birth_year;
+						} else {
+							birthdate = null;
+						}
 						break;
 					case 'yahoo':
-						birthdate.year = profile.birthYear;
+						if ( 'undefined' !== typeof profile.birthYear && null !== profile.birthYear ) {
+							birthdate.year = profile.birthYear;
+						} else {
+							birthdate = null;
+						}
 						break;
+                    case 'instagram':
+						birthdate = null;
+                        break;
+                    case 'wordpress':
+						birthdate = null;
+                        break;
+                    case 'vimeo':
+						birthdate = null;
+                        break;
+                    case 'youtube':
+						birthdate = null;
+                        break;
+                    case 'blogger':
+						birthdate = null;
+                        break;
+                    case 'reddit':
+						birthdate = null;
+                        break;
 					default:
+						birthdate = null;
 						break;
 				};
 			}
-			profiles[ service ] = birthdate;
+			profiles[ service ] = ( 'undefined' !== typeof birthdate && '' !== birthdate ) ? birthdate : null;
 		};
 		return profiles;
 	};
@@ -941,11 +1204,27 @@ var Accounts = ( function() {
 					case 'yahoo':
 						image = profile.image.imageUrl;
 						break;
+                    case 'instagram':
+                        image = profile.profile_picture;
+                        break;
+                    case 'wordpress':
+                        image = profile.avatar_URL;
+                        break;
+                    case 'vimeo':
+                        image = profile.portraits.portrait[ profile.portraits.portrait.length - 1 ]._content;
+                        break;
+                    case 'youtube':
+                        image = profile.snippet.thumbnails.high.url;
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = image;
+			profiles[ service ] = ( 'undefined' !== typeof image && '' !== image ) ? image : null;
 		};
 		return profiles;
 	};
@@ -981,11 +1260,169 @@ var Accounts = ( function() {
 						break;
 					case 'yahoo':
 						break;
+                    case 'instagram':
+						personal_url = profile.website;
+                        break;
+                    case 'wordpress':
+                        break;
+                    case 'vimeo':
+						personal_url = profile.url[ 0 ]
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
+
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = personal_url;
+			profiles[ service ] = ( 'undefined' !== typeof personal_url && '' !== personal_url ) ? personal_url : null;
+		};
+		return profiles;
+	};
+
+	Private.getProfileStats = function () {
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , other = []
+            , stats
+            , profiles = {};
+		for( service in services ) {
+			profile = services[ service ];
+			stats = null;
+			if( null !== profile ) {
+				switch( service ) {
+					case 'facebook':
+						stats = {
+							updated: profile.updated_time
+							, created: null
+						};
+						break;
+					case 'foursquare':
+						stats = {
+							todos: profile.todos.count
+							, tips: profile.tips.count
+							, mayorships: profile.mayorships.count
+							, checkins: profile.checkins.count
+							, badges: profile.badges.count
+							, friends: profile.friends.count
+							, following: profile.following.count
+							, incoming: profile.following.count + profile.friends.count
+							, outgoing: profile.friends.count
+							, created: profile.createdAt
+							, updated: null
+						};
+						break;
+					case 'github':
+						stats = {
+							followers: profile.followers
+							, following: profile.following
+							, public_gists: profile.public_gists
+							, public_repos: profile.public_repos
+							, created: profile.created_at
+							, updated: profile.updated_at
+						};
+						break;
+					case 'google':
+						break;
+					case 'linkedin':
+						stats = {
+							connections: profile.numConnections
+							, created: null
+							, updated: null
+						};
+						break;
+					case 'tumblr':
+						var a = 0, alen = profile.blogs.length, blog, posts_count = 0, followers_count = 0, messages_count = 0;
+						for ( ; a < alen ; a += 1 ) {
+							blog = profile.blogs[ a ];
+							posts_count += blog.posts;
+							followers_count += blog.followers;
+							messages_count += blog.messages;
+						}
+						stats = {
+							following: profile.following
+							, likes: profile.likes
+							, posts: posts_count
+							, followers: followers_count
+							, messages: messages_count
+							, created: null
+							, updated: null
+						};
+						break;
+					case 'twitter': 
+						stats = {
+							created: profile.created_at
+							, updated: null
+							, statuses_count: profile.statuses_count
+							, listed_count: profile.listed_count
+							, friends_count: profile.friends_count
+							, followers_count: profile.followers_count
+							, favorites_count: profile.favorites_count
+						};
+						break;
+					case 'yahoo':
+						stats = {
+							created: profile.memberSince
+							, updated: profile.updated
+						};
+						break;
+					case 'windows':
+						break;
+                    case 'instagram':
+						stats = {
+							followed_by: profile.counts.followed_by
+							, follows: profile.counts.follows
+							, media: profile.counts.media
+							, created: null
+							, updated: null
+						};
+                        break;
+                    case 'wordpress':
+                        break;
+                    case 'vimeo':
+						stats = {
+							created: profile.created_on
+							, updated: null
+							, number_of_albums: profile.number_of_albums
+							, number_of_channels: profile.number_of_channels 
+							, number_of_contacts: profile.number_of_contacts 
+							, number_of_groups: profile.number_of_groups 
+							, number_of_likes: profile.number_of_likes 
+							, number_of_uploads: profile.number_of_uploads 
+							, number_of_videos: profile.number_of_videos
+							, number_of_videos_appears_in: profile.number_of_videos_appears_in
+						};
+                        break;
+                    case 'youtube':
+						stats = {
+							comment_count: profile.statistics.commentCount
+							, subscriber_count: profile.statistics.subscriberCount
+							, video_count: profile.statistics.videoCount
+							, view_count: profile.statistics.viewCount
+							, created: profile.snippet.publishedAt
+							, updated: null
+						};
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+						stats = {
+							comment_karma: profile.comment_karma
+							, link_karma: profile.link_karma
+							, created: profile.created
+							, updated: null
+						};
+                        break;
+					default:
+						break;
+				};
+			}
+			profiles[ service ] = ( 'undefined' !== typeof stats && '' !== stats ) ? stats : null;
 		};
 		return profiles;
 	};
@@ -1009,7 +1446,7 @@ var Accounts = ( function() {
 						profile_url = profile.link;
 						break;
 					case 'foursquare':
-						profile_url = profile.canonicalUrl;
+						profile_url = "https://foursquare.com/user/" + profile.id;
 						break;
 					case 'github':
 						profile_url = profile.html_url;
@@ -1030,13 +1467,30 @@ var Accounts = ( function() {
 						profile_url = profile.profileUrl;
 						break;
 					case 'windows':
-						profile_url = profile.link;
+						profile_url = "https://profile.live.com/cid-" + profile.id
 						break;
+                    case 'instagram':
+						profile_url = "http://instagram.com/" + profile.username;
+                        break;
+                    case 'wordpress':
+						prifile_url = profile.profile_URL;
+                        break;
+                    case 'vimeo':
+						profile_url = profile.profileurl;
+                        break;
+                    case 'youtube':
+						profile_url = "http://www.youtube.com/channel/" + profile.id;
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+						profile_url = "http://www.reddit.com/user/" + profile.name
+                        break;
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = profile_url;
+			profiles[ service ] = ( 'undefined' !== typeof profile_url && '' !== profile_url ) ? profile_url : null;
 		};
 		return profiles;
 	};
@@ -1074,11 +1528,25 @@ var Accounts = ( function() {
 					case 'windows':
 						email = profile.emails.preferred;
 						break;
+                    case 'instagram':
+                        break;
+                    case 'wordpress':
+						email = profile.email;
+                        break;
+                    case 'vimeo':
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
+
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = email;
+			profiles[ service ] = ( 'undefined' !== typeof email && '' !== email ) ? email : null;
 		};
 		return profiles;
 	};
@@ -1118,12 +1586,28 @@ var Accounts = ( function() {
 					case 'yahoo':
 						username = profile.nickname;
 						break;
+                    case 'instagram':
+						useranme = profile.username;
+                        break;
+                    case 'wordpress':
+						useranme = profile.username;
+                        break;
+                    case 'vimeo':
+						useranme = profile.username;
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+						username = profile.name;
+                        break;
 					default:
 						break;
 				};
 
 			}
-			profiles[ service ] = username;
+			profiles[ service ] = ( 'undefined' !== typeof username && '' !== username ) ? username : null;
 		};
 		return profiles;
 	};
@@ -1144,9 +1628,9 @@ var Accounts = ( function() {
 					case 'foursquare':
 						break;
 					case 'github':
+						description = profile.bio;
 						break;
 					case 'google':
-						description = profile.bio;
 						break;
 					case 'linkedin':
 						description = profile.headline;
@@ -1160,11 +1644,25 @@ var Accounts = ( function() {
 						break;
 					case 'yahoo':
 						break;
+                    case 'instagram':
+						description = profile.bio;
+                        break;
+                    case 'wordpress':
+                        break;
+                    case 'vimeo':
+						description = profile.bio;
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = description;
+			profiles[ service ] = ( 'undefined' !== typeof description && '' !== description ) ? description : null;
 		};
 		return profiles;
 	};
@@ -1181,7 +1679,7 @@ var Accounts = ( function() {
 			if( null !== profile ) {
 				switch( service ) {
 					case 'facebook':
-						location = ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
+						location = ( 'undefined' !== typeof profile.location && null !== profile.location && 'undefined' !== typeof profile.location.name ) ? profile.location.name : null;
 						break;
 					case 'foursquare':
 						location = profile.homeCity;
@@ -1190,7 +1688,15 @@ var Accounts = ( function() {
 						location = profile.location;
 						break;
 					case 'google':
-						location = profile.bio;
+						if ( 'undefined' !== typeof profile.placesLived ) {
+							var a = 0, alen = profile.placesLived.length, aitem;
+							for ( ; a < alen ; a += 1 ) {
+								aitem = profile.placesLived[ a ];
+								if ( true === aitem.primary ) {
+									location = aitem.value;
+								}
+							}
+						}
 						break;
 					case 'linkedin':
 						location =  ( 'undefined' === typeof profile.location ) ? null : profile.location.name;
@@ -1204,17 +1710,30 @@ var Accounts = ( function() {
 						break;
 					case 'yahoo':
 						break;
+                    case 'instagram':
+                        break;
+                    case 'wordpress':
+                        break;
+                    case 'vimeo':
+						location = profile.location;
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = location;
+			profiles[ service ] = ( 'undefined' !== typeof location && '' !== location ) ? location : null;
 		};
 		return profiles;
 	};
 
 
-	Private.getProfileLocale = function () {
+	Private.getProfileLocales = function () {
 		var services = Private.getUnifiedProfiles()
             , attr
             , profile
@@ -1245,11 +1764,23 @@ var Accounts = ( function() {
 						break;
 					case 'yahoo':
 						break;
+                    case 'instagram':
+                        break;
+                    case 'wordpress':
+                        break;
+                    case 'vimeo':
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'blogger':
+                        break;
+                    case 'reddit':
+                        break;
 					default:
 						break;
 				};
 			}
-			profiles[ service ] = locale;
+			profiles[ service ] = ( 'undefined' !== typeof locale && '' !== locale ) ? locale : null;
 		};
 		return profiles;
 	};
@@ -1302,7 +1833,7 @@ var Accounts = ( function() {
 			for( attr in maxes ) {
 				for( x = 0; x < xlen; x += 1 ) {
 					service = services[ x ];
-					if( 'undefined' !== typeof options[ service ][ attr ] && ( 'undefined' === typeof max_vals[ attr ] || null === max_vals[ attr ] ) ) {
+					if( null !== options[ service ] && 'undefined' !== typeof options[ service ][ attr ] && null !== options[ service ][ attr ] && ( 'undefined' === typeof max_vals[ attr ] || null === max_vals[ attr ] ) ) {
 						max_vals[ attr ] = options[ service ][ attr ];
 					}
 				}
@@ -1369,12 +1900,12 @@ var Accounts = ( function() {
 			, 'profiles': Private.removeNulls( Private.getProfileURLs() )
 			, 'username': Private.unifyOptions( Private.getProfileUsernames() )
 			, 'email': Private.unifyOptions( Private.getProfileEmails() )
-			, 'name': Private.unifyOptionsAttributes( Private.getProfileDisplayNames() )
+			, 'name': Private.unifyOptionsAttributes( Private.getProfileNames() )
 			, 'birthdate': Private.unifyOptionsAttributes( Private.getProfileBirthdates() )
 			, 'gender': Private.unifyOptions( Private.getProfileGenders() )
 			, 'image': Private.unifyOptions( Private.getProfileImages() )
 			, 'location': Private.unifyOptions( Private.getProfileLocations() )
-			, 'locale': Private.unifyOptions( Private.getProfileLocale() )
+			, 'locale': Private.unifyOptions( Private.getProfileLocales() )
 			, 'description': Private.unifyOptions( Private.getProfileDescriptions() )
 			, 'url': Private.unifyOptions( Private.getProfilePersonalURLs() )
 		};
@@ -1386,12 +1917,12 @@ var Accounts = ( function() {
 			, 'profiles': Private.getProfileURLs()
 			, 'username': Private.getProfileUsernames()
 			, 'email': Private.getProfileEmails()
-			, 'name': Private.getProfileDisplayNames()
+			, 'name': Private.getProfileNames()
 			, 'birthdate': Private.getProfileBirthdates()
 			, 'gender': Private.getProfileGenders()
 			, 'image': Private.getProfileImages()
 			, 'location': Private.getProfileLocations()
-			, 'locale': Private.getProfileLocale()
+			, 'locale': Private.getProfileLocales()
 			, 'description': Private.getProfileDescriptions()
 			, 'url': Private.getProfilePersonalURLs()
 		};
