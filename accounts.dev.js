@@ -341,6 +341,10 @@ var Accounts = ( function() {
 		return Private.getProfile( type );
 	};
 	
+	Public.prototype.map = function() {
+		return Private.getAllProfileAttributesMap();
+	};
+	
 	Public.prototype.options = function() {
 		return Private.getAllProfileAttributes();
 	};
@@ -615,7 +619,6 @@ var Accounts = ( function() {
 		return Private.getProfileUsernames()[ type ];
 	};
 
-
 	Private.getProfileAttributeByService = function (service, attr) {
 		var val;
 		switch( attr ) {
@@ -677,6 +680,20 @@ var Accounts = ( function() {
 		return result;
 	};
 
+	Private.getAllProfileAttributesMap = function() {
+		var attrs = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ]
+			, attrlen = attrs.length
+			, attr
+			, x = 0
+			, result = {};
+		for ( ; x < attrlen ; x += 1 ) {
+			attr = attrs[ x ];
+			result[ attr ] = Private.getAllByProfileAttributeMap( attr );
+		}
+		return result;
+	};
+
+
 	Private.getAllByProfileAttribute = function (attr) {
 		var services = Private.getUnifiedProfiles()
 		    , attr
@@ -695,6 +712,27 @@ var Accounts = ( function() {
 		};
 		return result;
 	};
+
+
+	Private.getAllByProfileAttributeMap = function (attr) {
+		var services = Private.getUnifiedProfiles()
+		    , attr
+            , profile
+            , id
+			, val
+			, result = [];
+		for( service in services ) {
+			profile = services[ service ];
+			if( profile !== null ) {
+				val = Private.getProfileAttributeByService( service, attr );
+				if ( null !== val ) {
+					result.push( { service: service, value: val } )
+				}
+			}
+		};
+		return result;
+	};
+
 
 
 	Private.getAccessTokens = function() {
