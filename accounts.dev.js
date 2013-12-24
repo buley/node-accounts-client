@@ -749,16 +749,87 @@ var Accounts = ( function() {
 		};
 		var processMulti = function(item, at) {
 			var a = 0, alen = item.length, aitem = null, cache = {};
+			//count values
 			for ( ; a < alen ; a += 1 ) {
 				aitem = item[ a ];
 				var bitem, battr, aval = aitem.value;
 				for ( battr in aval ) {
 					if ( true === aval.hasOwnProperty( battr ) ) {
-						bitem = aval[ battr ];
-						console.log('bitem',aval, bitem, battr );
+						bitem = aval[ battr ] || '';
+						if ( '' === bitem || null === bitem || 'undefined' === typeof bitem ) {
+							continue;
+						}
+						cache[ battr ] = cache[ battr ] || {};
+						if ( 'undefined' === typeof cache[ battr ][ bitem ] ) {
+							cache[ battr ][ bitem ] = 1;
+						}
+						cache[ battr ][ bitem ]++;
 					}
 				}
-			}		
+			}
+			//go through counts, find highest
+			var hmap = {};
+			for ( battr in cache ) {
+				if ( true === cache.hasOwnProperty( battr ) ) {
+					var lowest = Infinity, highest = -(Infinity);
+					var hslug, lslug;
+					var items = cache[ battr ];
+					for ( bitem in items ) {
+						if ( items.hasOwnProperty( bitem ) ) {
+							var z = cache[ battr ][ bitem ];
+							console.log('z',z,battr,bitem);
+							if ( 'undefined' !== typeof z ) {
+								console.log('xz',z,'high',highest);
+								if ( z < lowest && null !== bitem && "" !== bitem ) {
+									lowest = z;
+									lslug = bitem;
+								}
+								if ( z > highest && null !== bitem && "" !== bitem ) {
+									highest = z;
+									hmap[ battr ] = z; 
+									hslug = bitem;
+								}
+							}
+						}
+					}
+				}
+			}
+			var results = {}, candidates = [];
+			for ( a = 0; a < alen ; a += 1 ) {
+				aitem = item[ a ];
+				var bitem, battr, aval = aitem.value;
+				for ( battr in aval ) {
+					if ( true === aval.hasOwnProperty( battr ) && 'undefined' !== typeof  cache[ battr ] ) {
+						var z = cache[ battr ][ aitem.value[ battr ] ];
+						candidates[ battr ] = candidates[ battr ] || [];
+						if ( 'undefined' !== typeof z && z === hmap[ battr ] ) {
+							candidates[ battr ].push( { service: aitem.service, value: aitem.value[ battr ] } );
+						}
+						if ( 0 === candidates[ battr ].length ) {
+							delete candidates[ battr ];
+						}
+					}
+				}
+			}
+			console.log('candidates',candidates);
+			for ( a = 0; a < alen ; a += 1 ) {
+				aitem = item[ a ];
+				var bitem, battr, aval = aitem.value;
+				for ( battr in aval ) {
+					if ( true === aval.hasOwnProperty( battr ) ) {
+						if ( 'undefined' === typeof candidates[ battr ] || null === candidates[ battr ] ) {
+							results[ battr ] = [];
+						} else {
+							results[ battr ] = determine( candidates[ battr ] );
+						}
+						if ( 0 === results[ battr ].length ) {
+							results[ battr ] = null;
+						}
+					}
+				}
+			}
+			console.log('results',results);
+			return results;
 		}
 
 		for ( attr in map ) {
@@ -772,9 +843,9 @@ var Accounts = ( function() {
 				} else if ( 'stats' === attr ) {
 					result[ 'stats' ] = map[ attr ];
 				} else if ( 'name' === attr ) {
-					result[ attr ] = determine( processMulti( map[ attr ], attr ) );
+					result[ attr ] = processMulti( map[ attr ], attr );
 				} else if ( 'birthdate' === attr ) {
-					result[ attr ] = determine( processMulti( map[ attr ], attr ) );
+					result[ attr ] = processMulti( map[ attr ], attr );
 				} else {
 					result[ attr ] = determine( process( map[ attr ], attr ) );
 				}
