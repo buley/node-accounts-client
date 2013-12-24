@@ -705,65 +705,76 @@ var Accounts = ( function() {
 			} );
 			return stack[ 0 ];
 		};
-		for ( attr in map ) {
-			if ( map.hasOwnProperty( attr ) ) {
-				var process = function(item, at) {
-					var a = 0, alen = item.length, aitem = null, cache = {};
-					for ( ; a < alen ; a += 1 ) {
-						aitem = item[ a ];
-						if ( 'undefined' === typeof cache[ aitem.value ] ) {
-							cache[ aitem.value ] = 1;
-						} else {
-							cache[ aitem.value ] += 1;
-						}
+		var process = function(item, at) {
+			var a = 0, alen = item.length, aitem = null, cache = {};
+			for ( ; a < alen ; a += 1 ) {
+				aitem = item[ a ];
+				if ( 'undefined' === typeof cache[ aitem.value ] ) {
+					cache[ aitem.value ] = 1;
+				} else {
+					cache[ aitem.value ] += 1;
+				}
+			}
+			var highest = -(Infinity), lowest = Infinity, att, val, hslug, lslug;
+			for ( att in cache ) {
+				if ( cache.hasOwnProperty( att ) ) {
+					val = cache[ att ];
+					if ( val < lowest ) {
+						lslug = att;
+						lowest = val;
 					}
-					var highest = -(Infinity), lowest = Infinity, att, val, hslug, lslug;
-					for ( att in cache ) {
-						if ( cache.hasOwnProperty( att ) ) {
-							val = cache[ att ];
-							if ( val < lowest ) {
-								lslug = att;
-								lowest = val;
-							}
-							if ( val > highest ) {
-								hslug = att;
-								highest = val;
-							}
-						}
+					if ( val > highest ) {
+						hslug = att;
+						highest = val;
 					}
-					var candidates = [];
-					for ( att in cache ) {
-						if ( cache.hasOwnProperty( att ) ) {
-							val = cache[ att ];
-							if ( val === highest ) {	
-								for ( att2 in item ) {
-									if ( item.hasOwnProperty( att2 ) ) {
-										val2 = item[ att2 ];
-										if ( val2.value === att ) {
-											candidates.push( val2 );
-										}
-									}
+				}
+			}
+			var candidates = [];
+			for ( att in cache ) {
+				if ( cache.hasOwnProperty( att ) ) {
+					val = cache[ att ];
+					if ( val === highest ) {	
+						for ( att2 in item ) {
+							if ( item.hasOwnProperty( att2 ) ) {
+								val2 = item[ att2 ];
+								if ( val2.value === att ) {
+									candidates.push( val2 );
 								}
 							}
 						}
 					}
-					return candidates;
-				};
+				}
+			}
+			return candidates;
+		};
+		var processMulti = function(item, at) {
+			var a = 0, alen = item.length, aitem = null, cache = {};
+			for ( ; a < alen ; a += 1 ) {
+				aitem = item[ a ];
+				var bitem, battr, aval = aitem.value;
+				for ( battr in aval ) {
+					if ( true === aval.hasOwnProperty( battr ) ) {
+						bitem = aval[ battr ];
+						console.log('bitem',aval, bitem, battr );
+					}
+				}
+			}		
+		}
+
+		for ( attr in map ) {
+			if ( map.hasOwnProperty( attr ) ) {
 				if ( 'id' === attr ) {
-					console.log('id');
 					result[ 'ids' ] = map[ attr ];
 				} else if ( 'profile_url' === attr ) {
-					console.log('profile_url');
 					result[ 'profiles' ] = map[ attr ];
 				} else if ( 'image' === attr ) {
-					console.log('image');
 					result[ 'images' ] = map[ attr ];
 				} else if ( 'stats' === attr ) {
-					console.log('stats');
+					result[ 'stats' ] = map[ attr ];
 				} else if ( 'name' === attr ) {
-					console.log('name');
+					result[ attr ] = determine( processMulti( map[ attr ], attr ) );
 				} else if ( 'birthdate' === attr ) {
-					console.log('birthdate');
+					result[ attr ] = determine( processMulti( map[ attr ], attr ) );
 				} else {
 					result[ attr ] = determine( process( map[ attr ], attr ) );
 				}
