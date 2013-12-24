@@ -13,6 +13,7 @@ var Accounts = ( function() {
 	Private.debug = false;
 	Private.unhelpfulErrorMessage = 'Something went awry.';
 	Private.activeServices = [];
+	Private.picked = {};
 	zlen = Private.allServices.length;
 
     for( z = 0; z < zlen; z += 1 ) {
@@ -852,11 +853,31 @@ var Accounts = ( function() {
 
 	Private.getAllProfileAttributesChosen = function() {
 		var defaults = Private.getAllProfileAttributesPickDefaults()
-			, map = Private.getAllProfileAttributesMap(true)
-			, picked = Private.picked;
+			, map = Private.getAllProfileAttributesMap(null, true)
+			, picked = Private.picked || {}
+			, attr
+			, copy = defaults;
+		for ( attr in defaults ) {
+			if ( true === defaults.hasOwnProperty( attr ) ) {
+				if ( 'name' === attr || 'birthdate' === attr ) {
+					var attr2;
+					for ( attr2 in copy[ attr ] ) {
+						if ( true === copy[ attr ].hasOwnProperty( attr2 ) && 'undefined' !== typeof  picked[ attr ] && 'undefined' !== typeof picked[ attr ][ attr2 ] ) {
+							copy[ attr ][ attr2 ] = picked[ attr ][ attr2 ];
+						}
+					}
+				} else {
+					if ( 'undefined' !== typeof picked[ attr ] ) { 
+						copy[ attr ] = picked[ attr ];
+					}
+				}
+			}
+		}
 		console.log('picked',picked);
 		console.log('map', map);
 		console.log('defaults',defaults);
+		console.log('COPY',copy);
+		return copy;
 	}
 	Private.getAllProfileAttributesMap = function(pretty) {
 		var attrs = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ]
