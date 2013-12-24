@@ -749,7 +749,6 @@ var Accounts = ( function() {
 		};
 		var processMulti = function(item, at) {
 			var a = 0, alen = item.length, aitem = null, cache = {};
-			//count values
 			for ( ; a < alen ; a += 1 ) {
 				aitem = item[ a ];
 				var bitem, battr, aval = aitem.value;
@@ -767,19 +766,18 @@ var Accounts = ( function() {
 					}
 				}
 			}
-			//go through counts, find highest
 			var hmap = {};
 			for ( battr in cache ) {
 				if ( true === cache.hasOwnProperty( battr ) ) {
-					var lowest = Infinity, highest = -(Infinity);
-					var hslug, lslug;
-					var items = cache[ battr ];
+					var lowest = Infinity
+						, highest = -(Infinity)
+						, hslug
+						, lslug
+						, items = cache[ battr ];
 					for ( bitem in items ) {
 						if ( items.hasOwnProperty( bitem ) ) {
 							var z = cache[ battr ][ bitem ];
-							console.log('z',z,battr,bitem);
 							if ( 'undefined' !== typeof z ) {
-								console.log('xz',z,'high',highest);
 								if ( z < lowest && null !== bitem && "" !== bitem ) {
 									lowest = z;
 									lslug = bitem;
@@ -811,7 +809,6 @@ var Accounts = ( function() {
 					}
 				}
 			}
-			console.log('candidates',candidates);
 			for ( a = 0; a < alen ; a += 1 ) {
 				aitem = item[ a ];
 				var bitem, battr, aval = aitem.value;
@@ -828,7 +825,6 @@ var Accounts = ( function() {
 					}
 				}
 			}
-			console.log('results',results);
 			return results;
 		}
 
