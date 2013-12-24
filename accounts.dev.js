@@ -847,16 +847,18 @@ var Accounts = ( function() {
 				}
 			}
 		}
-		console.log('result',result);
+		return result;
 	}
 
 	Private.getAllProfileAttributesChosen = function() {
-		Private.getAllProfileAttributesPickDefaults();
-		var map = Private.getAllProfileAttributesMap()
+		var defaults = Private.getAllProfileAttributesPickDefaults()
+			, map = Private.getAllProfileAttributesMap(true)
 			, picked = Private.picked;
 		console.log('picked',picked);
+		console.log('map', map);
+		console.log('defaults',defaults);
 	}
-	Private.getAllProfileAttributesMap = function() {
+	Private.getAllProfileAttributesMap = function(pretty) {
 		var attrs = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ]
 			, attrlen = attrs.length
 			, attr
@@ -864,7 +866,7 @@ var Accounts = ( function() {
 			, result = {};
 		for ( ; x < attrlen ; x += 1 ) {
 			attr = attrs[ x ];
-			result[ attr ] = Private.getAllByProfileAttributeMap( attr );
+			result[ attr ] = Private.getAllByProfileAttributeMap( attr, pretty );
 		}
 		return result;
 	};
@@ -890,13 +892,14 @@ var Accounts = ( function() {
 	};
 
 
-	Private.getAllByProfileAttributeMap = function (attr) {
+	Private.getAllByProfileAttributeMap = function (attr, pretty) {
 		var services = Private.getUnifiedProfiles()
 		    , attr
             , profile
             , id
 			, val
 			, result = [];
+
 		for( service_slug in services ) {
 			( function( service ) { 
 				profile = services[ service ];
@@ -908,7 +911,24 @@ var Accounts = ( function() {
 				}
 			} )( service_slug );
 		};
-		return result;
+		if ( true === pretty && ( 'name' === attr || 'birthdate' === attr ) ) {
+			var xformed = { 'name': {}, 'birthdate': {} };
+			var x = 0, xlen = result.length, xitem, xval;
+			for ( ; x < xlen; x += 1 ) {
+				xitem = result[ x ];
+				xval = xitem.value;
+				for ( att in xval ) {
+					if ( xval.hasOwnProperty( att ) ) {
+						xformed[ attr ] = xformed[ attr ] || {}
+						xformed[ attr ][ att ] = xformed[ attr ][ att ] || [];
+						xformed[ attr ][ att ].push( { service: xitem.service, value: xval[ att ] } );
+					}
+				}
+			}
+			return xformed;
+		} else {
+			return result;
+		}
 	};
 
 
