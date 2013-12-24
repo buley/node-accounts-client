@@ -344,6 +344,10 @@ var Accounts = ( function() {
 	Public.prototype.map = function() {
 		return Private.getAllProfileAttributesMap();
 	};
+		
+	Public.prototype.chosen = function() {
+		return Private.getAllProfileAttributesChosen();
+	};
 	
 	Public.prototype.options = function() {
 		return Private.getAllProfileAttributes();
@@ -680,6 +684,100 @@ var Accounts = ( function() {
 		return result;
 	};
 
+	Private.getAllProfileAttributesPickDefaults = function() {
+		var map = Private.getAllProfileAttributesMap()
+			, attr = null
+			, item = null
+			, result = {};
+		var determine = function( stack ) {
+			var sorted = stack.sort( function( el1, el2 ) {
+				var idx1, idx2, x = 0, xlen = Private.allServices.length, xitem;
+				for ( ; x < xlen ; x += 1 ) {
+					xitem = Private.allServices[ x ];
+					if ( el1.service === xitem ) {
+						el1 = x;
+					}
+					if ( el2.service === xitem ) {
+						el2 = x;
+					}
+				}
+				return ( el1 > el2 ) ? 1 : ( el1 === el2 ) ? 0 : -1;
+			} );
+			return stack[ 0 ];
+		};
+		for ( attr in map ) {
+			if ( map.hasOwnProperty( attr ) ) {
+				var process = function(item, at) {
+					var a = 0, alen = item.length, aitem = null, cache = {};
+					for ( ; a < alen ; a += 1 ) {
+						aitem = item[ a ];
+						if ( 'undefined' === typeof cache[ aitem.value ] ) {
+							cache[ aitem.value ] = 1;
+						} else {
+							cache[ aitem.value ] += 1;
+						}
+					}
+					var highest = -(Infinity), lowest = Infinity, att, val, hslug, lslug;
+					for ( att in cache ) {
+						if ( cache.hasOwnProperty( att ) ) {
+							val = cache[ att ];
+							if ( val < lowest ) {
+								lslug = att;
+								lowest = val;
+							}
+							if ( val > highest ) {
+								hslug = att;
+								highest = val;
+							}
+						}
+					}
+					var candidates = [];
+					for ( att in cache ) {
+						if ( cache.hasOwnProperty( att ) ) {
+							val = cache[ att ];
+							if ( val === highest ) {	
+								for ( att2 in item ) {
+									if ( item.hasOwnProperty( att2 ) ) {
+										val2 = item[ att2 ];
+										if ( val2.value === att ) {
+											candidates.push( val2 );
+										}
+									}
+								}
+							}
+						}
+					}
+					return candidates;
+				};
+				if ( 'id' === attr ) {
+					console.log('id');
+					result[ 'ids' ] = map[ attr ];
+				} else if ( 'profile_url' === attr ) {
+					console.log('profile_url');
+					result[ 'profiles' ] = map[ attr ];
+				} else if ( 'image' === attr ) {
+					console.log('image');
+					result[ 'images' ] = map[ attr ];
+				} else if ( 'stats' === attr ) {
+					console.log('stats');
+				} else if ( 'name' === attr ) {
+					console.log('name');
+				} else if ( 'birthdate' === attr ) {
+					console.log('birthdate');
+				} else {
+					result[ attr ] = determine( process( map[ attr ], attr ) );
+				}
+			}
+		}
+		console.log('result',result);
+	}
+
+	Private.getAllProfileAttributesChosen = function() {
+		Private.getAllProfileAttributesPickDefaults();
+		var map = Private.getAllProfileAttributesMap()
+			, picked = Private.picked;
+		console.log('picked',picked);
+	}
 	Private.getAllProfileAttributesMap = function() {
 		var attrs = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ]
 			, attrlen = attrs.length
@@ -721,14 +819,16 @@ var Accounts = ( function() {
             , id
 			, val
 			, result = [];
-		for( service in services ) {
-			profile = services[ service ];
-			if( profile !== null ) {
-				val = Private.getProfileAttributeByService( service, attr );
-				if ( null !== val ) {
-					result.push( { service: service, value: val } )
+		for( service_slug in services ) {
+			( function( service ) { 
+				profile = services[ service ];
+				if( profile !== null ) {
+					val = Private.getProfileAttributeByService( service, attr );
+					if ( null !== val ) {
+						result.push( { service: service, value: val } )
+					}
 				}
-			}
+			} )( service_slug );
 		};
 		return result;
 	};
