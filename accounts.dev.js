@@ -8,12 +8,12 @@ var Accounts = ( function() {
         , zlen;
 
 	Private.connected = false;
+	Private.attributes = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ];
 	Private.prefix = 'accounts';
 	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo', 'youtube', 'blogger', 'evernote', 'reddit' ];
 	Private.debug = false;
 	Private.unhelpfulErrorMessage = 'Something went awry.';
 	Private.activeServices = [];
-	Private.picked = {};
 	zlen = Private.allServices.length;
 
     for( z = 0; z < zlen; z += 1 ) {
@@ -343,11 +343,26 @@ var Accounts = ( function() {
 	};
 	
 	Public.prototype.map = function() {
-		return Private.getAllProfileAttributesMap();
+		return Private.getAllProfileAttributesMap.apply(this, arguments);
+	};
+
+	Public.prototype.pick = function(attr, value) {
+		var pieces = attr.split( '.' );
+		if ( 'undefined' !== typeof pieces[ 1 ] ) {
+			Private.picked[ pieces[ 0 ] ] = Private.picked[ pieces[ 0 ] ] || {};
+			Private.picked[ pieces[ 0 ] ][ pieces[ 1 ] ] = value;
+		} else {
+			Private.picked[ pieces[ 0 ] ] = value;
+		}
+		return Private.picked;
 	};
 		
 	Public.prototype.chosen = function() {
 		return Private.getAllProfileAttributesChosen();
+	};
+	
+	Public.prototype.common = function( service ) {
+		return Private.getAllProfileAttributesCommon( service );
 	};
 	
 	Public.prototype.options = function() {
@@ -835,8 +850,6 @@ var Accounts = ( function() {
 					result[ 'ids' ] = map[ attr ];
 				} else if ( 'profile_url' === attr ) {
 					result[ 'profiles' ] = map[ attr ];
-				} else if ( 'image' === attr ) {
-					result[ 'images' ] = map[ attr ];
 				} else if ( 'stats' === attr ) {
 					result[ 'stats' ] = map[ attr ];
 				} else if ( 'name' === attr ) {
@@ -849,11 +862,29 @@ var Accounts = ( function() {
 			}
 		}
 		return result;
-	}
+	};
+
+	Private.getAllProfileAttributesCommon = function(service) {
+		var x = 0, xlen = Private.attributes.length, xitem, result = {};
+		for ( ; x < xlen ; x += 1 ) {
+			xitem = Private.attributes[ x ];
+			if ( 'name' === xitem || 'birthdate' === xitem ) {
+				var attr2, value = Private.getProfileAttributeByService( service, xitem ), next = {};
+				for ( attr2 in value ) {
+					if ( true === value.hasOwnProperty( attr2 ) ) {
+						next[ attr2 ] = { service: service, value: value[ attr2 ] };
+					}
+				}
+				result[ xitem ] = next;
+			} else {
+				result[ xitem ] = { service: service, value: Private.getProfileAttributeByService( service, xitem ) };
+			}
+		}
+		return result;
+	};
 
 	Private.getAllProfileAttributesChosen = function() {
 		var defaults = Private.getAllProfileAttributesPickDefaults()
-			, map = Private.getAllProfileAttributesMap(null, true)
 			, picked = Private.picked || {}
 			, attr
 			, copy = defaults;
@@ -873,14 +904,11 @@ var Accounts = ( function() {
 				}
 			}
 		}
-		console.log('picked',picked);
-		console.log('map', map);
-		console.log('defaults',defaults);
-		console.log('COPY',copy);
 		return copy;
-	}
+	};
+
 	Private.getAllProfileAttributesMap = function(pretty) {
-		var attrs = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ]
+		var attrs = Private.attributes
 			, attrlen = attrs.length
 			, attr
 			, x = 0
@@ -946,10 +974,9 @@ var Accounts = ( function() {
 					}
 				}
 			}
-			return xformed;
-		} else {
-			return result;
+			result = xformed[ attr ];
 		}
+		return result;
 	};
 
 
@@ -3665,6 +3692,8 @@ var Accounts = ( function() {
 		} );
 		return vars;
 	};
+
+	Private.picked = Private.storage.local.get( 'profile_picks' ) || {};
 
 	return Public;
 
