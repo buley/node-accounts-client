@@ -23,10 +23,17 @@ var Accounts = ( function() {
     Private.api = {};
 
     Private.api.request = function( req ) {
-		var url = [ Private.base, Private.prefix, 'login', req.service ].join( '/' )
+		var url = [ Private.base, Private.prefix, req.action, req.service ].join( '/' )
 			, callback = function(err, data) {
 				if ( null === err ) {
 					Private.publish( data.request.action, data.response );
+				}
+				if ( 'function' === typeof req.callback ) {
+					req.callback.apply( this, arguments );
+				} else if ( null === err && 'function' === typeof req.success ) {
+					req.success.apply( this, [ data ] );
+				} else if ( null !== err && 'function' === typeof req.error ) {
+					req.error.apply( this, [ err ] );
 				}
 		};
 		if ( 'confirm' === req.action ) {
@@ -40,6 +47,19 @@ var Accounts = ( function() {
 			this.put( url, {
 				request_token: req.request_token /* oAuth 1 & 2 */
 				, request_token_secret: req.request_token_secret /* oAuth 1 & 2 */
+			}, callback, {} );
+		} else if ( 'logout' === req.action ) {
+			this.delete( url, {
+				access_token: req.access_token
+			}, callback, {} );
+		} else if ( 'proxy' === req.action ) {
+			this.post( url, {
+				access_token: req.access_token
+				, access_token_secret: req.access_token_secret
+				, url: req.url
+				, method: req.method
+				, body: req.body
+				, type: req.type
 			}, callback, {} );
 		} else {
 			this.get( url, {
@@ -123,6 +143,32 @@ var Accounts = ( function() {
 			}
 		} );
 	};
+
+	Private.api.delete = function( url, data, callback, headers ) {
+		headers = headers || {};
+		var that = this;
+		Private.api.ajax( {
+			type: 'DELETE'
+			, url: url
+			, data: data
+			, headers: headers
+			, success: function(request) {
+				var error = null
+					, response = request.response;
+				try {
+					response = JSON.parse( response );
+				} catch ( e ) {
+					error = e;
+				} finally {
+					callback.apply( that, [ error, response ] );
+				}
+			}
+			, error: function(request) {
+				callback.apply( that, [ new Error( Private.unhelpfulErrorMessage ), null ] );
+			}
+		} );
+	};
+
 
 	Private.api.ajax = function(req) {
 		var request
@@ -314,6 +360,10 @@ var Accounts = ( function() {
 		return ! this.connected();
 	};
 
+	Public.prototype.authenticated = function( type ) {
+		return Private.authenticated( type );
+	};
+
 	Public.prototype.token = function( type ) {
 		return Private.getAccessToken( type );
 	};
@@ -346,6 +396,10 @@ var Accounts = ( function() {
 		return Private.getAllProfileAttributesMap.apply(this, arguments);
 	};
 
+	Public.prototype.services = function() {
+		return Private.allServices;
+	};
+
 	Public.prototype.pick = function(attr, value) {
 		var pieces = attr.split( '.' );
 		if ( 'undefined' !== typeof pieces[ 1 ] ) {
@@ -353,7 +407,33 @@ var Accounts = ( function() {
 			Private.picked[ pieces[ 0 ] ][ pieces[ 1 ] ] = value;
 		} else {
 			Private.picked[ pieces[ 0 ] ] = value;
+			if ( 'profile_url' === attr ) {
+				var map = this.map(true)
+					, x = 0
+					, xitems = map[ 'username' ]
+					, xlen = xitems.length
+					, xitem;
+				for ( ; x < xlen ; x += 1 ) {
+					xitem = xitems[ x ];
+					if ( xitem.service === value.service ) {
+						Private.picked[ 'username' ] = xitem;
+					}
+				}
+			} else if ( 'username' === attr ) {
+				var map = this.map(true)
+					, x = 0
+					, xitems = map[ 'profile_url' ]
+					, xlen = xitems.length
+					, xitem;
+				for ( ; x < xlen ; x += 1 ) {
+					xitem = xitems[ x ];
+					if ( xitem.service === value.service ) {
+						Private.picked[ 'profile_url' ] = xitem;
+					}
+				}
+			}
 		}
+		Private.storage.local.set( 'profile_picks', Private.picked );
 		return Private.picked;
 	};
 		
@@ -380,6 +460,10 @@ var Accounts = ( function() {
 
 	Public.prototype.login = function( service ) {
 		return Public.prototype.session( service );
+	};
+
+	Public.prototype.proxy = function( req ) {
+		return Private.proxy( req.service, req.url, req.callback, req.method, req.body, req.type );
 	};
 
 	Public.prototype.session = function( service ) {
@@ -468,7 +552,7 @@ var Accounts = ( function() {
 	};
 
 	//TODO: rename response var to request
-	Public.prototype.request = function( response ) {
+	/*Public.prototype.request = function( response ) {
         if ( 'account' === response.response_type ) {
             switch( response.service ) {
                 case 'twitter':
@@ -514,7 +598,7 @@ var Accounts = ( function() {
                     break;
             }
         }
-	};
+	};*/
 
 	Private.connect = function( service, oauth_type ) {
 		if( Public.prototype.disabled( service ) ) {
@@ -848,8 +932,6 @@ var Accounts = ( function() {
 			if ( map.hasOwnProperty( attr ) ) {
 				if ( 'id' === attr ) {
 					result[ 'ids' ] = map[ attr ];
-				} else if ( 'profile_url' === attr ) {
-					result[ 'profiles' ] = map[ attr ];
 				} else if ( 'stats' === attr ) {
 					result[ 'stats' ] = map[ attr ];
 				} else if ( 'name' === attr ) {
@@ -880,6 +962,7 @@ var Accounts = ( function() {
 				result[ xitem ] = { service: service, value: Private.getProfileAttributeByService( service, xitem ) };
 			}
 		}
+		result[ 'authenticated' ] = Private.authenticated( service );
 		return result;
 	};
 
@@ -937,6 +1020,7 @@ var Accounts = ( function() {
 				}
 			}
 		};
+		result.push( { service: null, value: null } );
 		return result;
 	};
 
@@ -980,6 +1064,10 @@ var Accounts = ( function() {
 	};
 
 
+	Private.authenticated = function(type) {
+		var token = Public.prototype.token( type );
+		return ( null === token || 'undefined' === typeof token ) ? false : true;
+	};
 
 	Private.getAccessTokens = function() {
 		var services = Private.getActiveServices();
@@ -999,52 +1087,52 @@ var Accounts = ( function() {
 		var access_token = null;
 		switch( type ) {
 			case 'facebook': 
-				access_token = Private.storage.session.get( 'facebook_access_token' );
+				access_token = Private.storage.local.get( 'facebook_access_token' );
 				break;
 			case 'twitter': 
-				access_token = Private.storage.session.get( 'twitter_access_token' );
+				access_token = Private.storage.local.get( 'twitter_access_token' );
 				break;
 			case 'foursquare': 
-				access_token = Private.storage.session.get( 'foursquare_access_token' );
+				access_token = Private.storage.local.get( 'foursquare_access_token' );
 				break;
 			case 'google': 
-				access_token = Private.storage.session.get( 'google_access_token' );
+				access_token = Private.storage.local.get( 'google_access_token' );
 				break;
 			case 'windows': 
-				access_token = Private.storage.session.get( 'windows_access_token' );
+				access_token = Private.storage.local.get( 'windows_access_token' );
 				break;
 			case 'tumblr': 
-				access_token = Private.storage.session.get( 'tumblr_access_token' );
+				access_token = Private.storage.local.get( 'tumblr_access_token' );
 				break;
 			case 'wordpress': 
-				access_token = Private.storage.session.get( 'wordpress_access_token' );
+				access_token = Private.storage.local.get( 'wordpress_access_token' );
 				break;
 			case 'instagram': 
-				access_token = Private.storage.session.get( 'instagram_access_token' );
+				access_token = Private.storage.local.get( 'instagram_access_token' );
 				break;
 			case 'vimeo': 
-				access_token = Private.storage.session.get( 'vimeo_access_token' );
+				access_token = Private.storage.local.get( 'vimeo_access_token' );
 				break;
 			case 'github': 
-				access_token = Private.storage.session.get( 'github_access_token' );
+				access_token = Private.storage.local.get( 'github_access_token' );
 				break;
 			case 'yahoo':
-				access_token = Private.storage.session.get( 'yahoo_access_token' );
+				access_token = Private.storage.local.get( 'yahoo_access_token' );
 				break;
 			case 'linkedin':
-				access_token = Private.storage.session.get( 'linkedin_access_token' );
+				access_token = Private.storage.local.get( 'linkedin_access_token' );
 				break;
             case 'reddit':
-                access_token = Private.storage.session.get( 'reddit_access_token' );
+                access_token = Private.storage.local.get( 'reddit_access_token' );
                 break;
             case 'youtube':
-                access_token = Private.storage.session.get( 'youtube_access_token' );
+                access_token = Private.storage.local.get( 'youtube_access_token' );
                 break;
             case 'blogger':
-                access_token = Private.storage.session.get( 'blogger_access_token' );
+                access_token = Private.storage.local.get( 'blogger_access_token' );
                 break;
             case 'evernote':
-                access_token = Private.storage.session.get( 'evernote_access_token' );
+                access_token = Private.storage.local.get( 'evernote_access_token' );
                 break;
 			default:
 				break;
@@ -1059,7 +1147,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof token || null === type || null === token ) {
 			return false;
 		}
-		return Private.storage.session.set( type + '_access_token', token );
+		return Private.storage.local.set( type + '_access_token', token );
 	};
 
 	Private.getAccessTokenSecrets = function() {
@@ -1079,52 +1167,52 @@ var Accounts = ( function() {
 		var access_token_secret = null;
 		switch( type ) {
 			case 'facebook': 
-				access_token_secret = Private.storage.session.get( 'facebook_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'facebook_access_token_secret' );
 				break;
 			case 'twitter': 
-				access_token_secret = Private.storage.session.get( 'twitter_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'twitter_access_token_secret' );
 				break;
 			case 'foursquare': 
-				access_token_secret = Private.storage.session.get( 'foursquare_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'foursquare_access_token_secret' );
 				break;
 			case 'google': 
-				access_token_secret = Private.storage.session.get( 'google_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'google_access_token_secret' );
 				break;
 			case 'tumblr': 
-				access_token_secret = Private.storage.session.get( 'tumblr_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'tumblr_access_token_secret' );
 				break;
 			case 'windows': 
-				access_token_secret = Private.storage.session.get( 'windows_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'windows_access_token_secret' );
 				break;
 			case 'github': 
-				access_token_secret = Private.storage.session.get( 'github_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'github_access_token_secret' );
 				break;
 			case 'linkedin': 
-				access_token_secret = Private.storage.session.get( 'linkedin_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'linkedin_access_token_secret' );
 				break;
 			case 'yahoo': 
-				access_token_secret = Private.storage.session.get( 'yahoo_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'yahoo_access_token_secret' );
 				break;
 			case 'wordpress': 
-				access_token_secret = Private.storage.session.get( 'wordpress_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'wordpress_access_token_secret' );
 				break;
 			case 'instagram': 
-				access_token_secret = Private.storage.session.get( 'instagram_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'instagram_access_token_secret' );
 				break;
 			case 'vimeo': 
-				access_token_secret = Private.storage.session.get( 'vimeo_access_token_secret' );
+				access_token_secret = Private.storage.local.get( 'vimeo_access_token_secret' );
 				break;
             case 'reddit':
-                access_token_secret = Private.storage.session.get( 'reddit_access_token_secret' );
+                access_token_secret = Private.storage.local.get( 'reddit_access_token_secret' );
                 break;
             case 'youtube':
-                access_token_secret = Private.storage.session.get( 'youtube_access_token_secret' );
+                access_token_secret = Private.storage.local.get( 'youtube_access_token_secret' );
                 break;
             case 'blogger':
-                access_token_secret = Private.storage.session.get( 'blogger_access_token_secret' );
+                access_token_secret = Private.storage.local.get( 'blogger_access_token_secret' );
                 break;
             case 'evernote':
-                access_token_secret = Private.storage.session.get( 'evernote_access_token_secret' );
+                access_token_secret = Private.storage.local.get( 'evernote_access_token_secret' );
                 break;
 			default:
 				break;
@@ -1139,7 +1227,7 @@ var Accounts = ( function() {
 		if( 'undefined' === typeof type || 'undefined' === typeof secret || null === type || null === secret ) {
 			return false;
 		}
-		Private.storage.session.set( type + '_access_token_secret', secret );
+		Private.storage.local.set( type + '_access_token_secret', secret );
 	};
 
 	Private.getProfiles = function () {
@@ -2247,7 +2335,9 @@ var Accounts = ( function() {
 		if( null !== obj.access_token && 'undefined' !== typeof obj.access_token ) {
 			Private.api.request( obj );
 		}
-
+		
+		Private.storage.local.delete( type + '_access_token' );
+		Private.storage.local.delete( type + '_profile' );
 
 	};
 
@@ -2276,6 +2366,30 @@ var Accounts = ( function() {
 		Private.api.request( params );
 
 	};
+	
+	Private.proxy = function ( type, url, callback, method, body, content_type ) {
+
+		var success = function(data) {
+			if ( 'function' === typeof callback ) {
+				callback.apply( this, [ null, data ] );
+			}
+		}, error = function( error ) {
+			if ( 'function' === typeof callback ) {
+				callback.apply( this, [ error, null ] );
+			}
+		};
+
+		if( Public.prototype.disabled( type ) ) {
+			return false;
+		}
+
+		var access_token = Private.getAccessToken( type )
+			, access_token_secret = Private.getAccessTokenSecret( type );
+
+		Private.api.request( { 'action': 'proxy', 'service': type, 'url': url, 'method': method, 'success': success, 'error': error, 'access_token': access_token, 'access_token_secret': access_token_secret, 'body': body, 'type': content_type } );
+
+	};
+
 
 	/* Instagram */
 
@@ -2294,7 +2408,7 @@ var Accounts = ( function() {
 
 		if( !!access_token ) {
 
-			Private.storage.session.set( 'instagram_access_token', access_token );
+			Private.storage.local.set( 'instagram_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'instagram', oauth_token: access_token, profile: data } );
 
 		}
@@ -2319,7 +2433,7 @@ var Accounts = ( function() {
 
 		if( !!access_token ) {
 
-			Private.storage.session.set( 'facebook_access_token', access_token );
+			Private.storage.local.set( 'facebook_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'facebook', oauth_token: access_token, profile: data } );
 
 		}
@@ -2342,7 +2456,7 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		
 		if( !!access_token ) {
-			Private.storage.session.set( 'foursquare_access_token', access_token );
+			Private.storage.local.set( 'foursquare_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'foursquare', oauth_token: access_token, profile: data } );
 		}
 
@@ -2364,7 +2478,7 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		
 		if( !!access_token ) {
-			Private.storage.session.set( 'wordpress_access_token', access_token );
+			Private.storage.local.set( 'wordpress_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'wordpress', oauth_token: access_token, profile: data } );
 		}
 
@@ -2387,7 +2501,7 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		
 		if( !!access_token ) {
-			Private.storage.session.set( 'google_access_token', access_token );
+			Private.storage.local.set( 'google_access_token', access_token );
 			Private.publish( 'sessioned', { service: 'google', oauth_token: access_token, profile: data } );
 		}
 
@@ -2409,7 +2523,7 @@ var Accounts = ( function() {
         var access_token = params.access_token;
 
         if( !!access_token ) {
-            Private.storage.session.set( 'youtube_access_token', access_token );
+            Private.storage.local.set( 'youtube_access_token', access_token );
             Private.publish( 'sessioned', { service: 'youtube', oauth_token: access_token, profile: data } );
         }
 
@@ -2431,7 +2545,7 @@ var Accounts = ( function() {
         var access_token = params.access_token;
 
         if( !!access_token ) {
-            Private.storage.session.set( 'blogger_access_token', access_token );
+            Private.storage.local.set( 'blogger_access_token', access_token );
             Private.publish( 'sessioned', { service: 'blogger', oauth_token: access_token, profile: data } );
         }
 
@@ -2455,8 +2569,8 @@ var Accounts = ( function() {
 		
 		if( !!access_token ) {
 		
-			Private.storage.session.set( 'twitter_access_token', access_token );
-			Private.storage.session.set( 'twitter_access_token_secret', access_token_secret );
+			Private.storage.local.set( 'twitter_access_token', access_token );
+			Private.storage.local.set( 'twitter_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'twitter', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		
 		}
@@ -2481,8 +2595,8 @@ var Accounts = ( function() {
 
         if( !!access_token ) {
 
-            Private.storage.session.set( 'evernote_access_token', access_token );
-            Private.storage.session.set( 'evernote_access_token_secret', access_token_secret );
+            Private.storage.local.set( 'evernote_access_token', access_token );
+            Private.storage.local.set( 'evernote_access_token_secret', access_token_secret );
             Private.publish( 'sessioned', { service: 'evernote', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 
         }
@@ -2504,7 +2618,7 @@ var Accounts = ( function() {
         var access_token = params.access_token;
 
         if( !!access_token ) {
-            Private.storage.session.set( 'reddit_access_token', access_token );
+            Private.storage.local.set( 'reddit_access_token', access_token );
             Private.publish( 'sessioned', { service: 'reddit', oauth_token: access_token, profile: data } );
         }
 
@@ -2692,8 +2806,8 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			Private.storage.session.set( 'yahoo_access_token', access_token );
-			Private.storage.session.set( 'yahoo_access_token_secret', access_token_secret );
+			Private.storage.local.set( 'yahoo_access_token', access_token );
+			Private.storage.local.set( 'yahoo_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'yahoo', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 	};
@@ -2712,8 +2826,8 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			Private.storage.session.set( 'linkedin_access_token', access_token );
-			Private.storage.session.set( 'linkedin_access_token_secret', access_token_secret );
+			Private.storage.local.set( 'linkedin_access_token', access_token );
+			Private.storage.local.set( 'linkedin_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'linkedin', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 	};
@@ -2729,12 +2843,12 @@ var Accounts = ( function() {
 			Private.publish( 'profile', { service: 'vimeo', data: data } );
 			Private.setProfile( 'vimeo', data );
 		}
-
+		console.log("CONFIRM VIMEO",params);
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			Private.storage.session.set( 'vimeo_access_token', access_token );
-			Private.storage.session.set( 'vimeo_access_token_secret', access_token_secret );
+			Private.storage.local.set( 'vimeo_access_token', access_token );
+			Private.storage.local.set( 'vimeo_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'vimeo', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 
@@ -2756,8 +2870,8 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			Private.storage.session.set( 'tumblr_access_token', access_token );
-			Private.storage.session.set( 'tumblr_access_token_secret', access_token_secret );
+			Private.storage.local.set( 'tumblr_access_token', access_token );
+			Private.storage.local.set( 'tumblr_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'tumblr', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 		}
 
@@ -2778,7 +2892,7 @@ var Accounts = ( function() {
 
 		if( !!access_token ) {
 			Private.publish( 'sessioned', { service: 'windows', oauth_token: access_token, profile: data } );
-			Private.storage.session.set( 'windows_access_token', access_token );
+			Private.storage.local.set( 'windows_access_token', access_token );
 		}
 
 	};
@@ -2799,7 +2913,7 @@ var Accounts = ( function() {
 
 		if( !!access_token ) {
 			Private.publish( 'sessioned', { service: 'github', oauth_token: access_token, profile: data } );
-			Private.storage.session.set( 'github_access_token', access_token );
+			Private.storage.local.set( 'github_access_token', access_token );
 		}
 
 	};
@@ -2819,8 +2933,8 @@ var Accounts = ( function() {
 		var access_token = params.access_token;
 		var access_token_secret = params.access_token_secret;
 		if( !!access_token ) {
-			Private.storage.session.set( 'twitter_access_token', access_token );
-			Private.storage.session.set( 'twitter_access_token_secret', access_token_secret );
+			Private.storage.local.set( 'twitter_access_token', access_token );
+			Private.storage.local.set( 'twitter_access_token_secret', access_token_secret );
 			Private.publish( 'sessioned', { service: 'twitter', oauth_token: access_token, oauth_secret: access_token_secret, profile: data } );
 			//Private.twitter.connect();
 		}
@@ -2830,142 +2944,142 @@ var Accounts = ( function() {
 
 		var url_vars = Private.utilities.getUrlVars();
 		
-		var facebook_code = Private.storage.session.get( 'facebook_code' );
+		var facebook_code = Private.storage.local.get( 'facebook_code' );
 		if( 'undefined' !== typeof facebook_code && null !== facebook_code ) {
 			Private.publish( 'verifying', { service: 'facebook', 'code': facebook_code } );
 			Private.do_confirm( 'facebook', { 'code': facebook_code } );
-			Private.storage.session.delete( 'facebook_code' );
+			Private.storage.local.delete( 'facebook_code' );
 		}	
 		
-		var twitter_token = Private.storage.session.get( 'twitter_oauth_request_token' );
-		var twitter_verifier = Private.storage.session.get( 'twitter_oauth_request_verifier' );
+		var twitter_token = Private.storage.local.get( 'twitter_oauth_request_token' );
+		var twitter_verifier = Private.storage.local.get( 'twitter_oauth_request_verifier' );
 		if( 'undefined' !== typeof twitter_token && null !== twitter_token && 'undefined' !== typeof twitter_verifier && null !== twitter_verifier ) {
 			Private.publish( 'verifying', { service: 'twitter', 'oauth_token': twitter_token, 'oauth_verifier': twitter_verifier } );
 			Private.do_confirm( 'twitter', { 'oauth_token': twitter_token, 'oauth_verifier': twitter_verifier } );
-			Private.storage.session.delete( 'twitter_oauth_request_token' );
-			Private.storage.session.delete( 'twitter_oauth_request_verifier' );
+			Private.storage.local.delete( 'twitter_oauth_request_token' );
+			Private.storage.local.delete( 'twitter_oauth_request_verifier' );
 		}
 
-		var foursquare_code = Private.storage.session.get( 'foursquare_code' );
+		var foursquare_code = Private.storage.local.get( 'foursquare_code' );
 		if( 'undefined' !== typeof foursquare_code && null !== foursquare_code  ) {
 			Private.publish( 'verifying', { service: 'foursquare', 'code': foursquare_code } );
 			Private.do_confirm( 'foursquare', { 'code': foursquare_code } );
-			Private.storage.session.delete( 'foursquare_code' );
+			Private.storage.local.delete( 'foursquare_code' );
 		}
 
-		var google_code = Private.storage.session.get( 'google_code' );
+		var google_code = Private.storage.local.get( 'google_code' );
 		if( 'undefined' !== typeof google_code && null !== google_code ) {
 			Private.publish( 'verifying', { service: 'google', 'code': google_code } );
 			Private.do_confirm( 'google', { 'code': google_code } );
-			Private.storage.session.delete( 'google_code' );
+			Private.storage.local.delete( 'google_code' );
 		}
 
-        var blogger_code = Private.storage.session.get( 'blogger_code' );
+        var blogger_code = Private.storage.local.get( 'blogger_code' );
         if( 'undefined' !== typeof blogger_code && null !== blogger_code ) {
             Private.publish( 'verifying', { service: 'blogger', 'code': blogger_code } );
             Private.do_confirm( 'blogger', { 'code': blogger_code } );
-            Private.storage.session.delete( 'blogger_code' );
+            Private.storage.local.delete( 'blogger_code' );
         }
 
-        var youtube_code = Private.storage.session.get( 'youtube_code' );
+        var youtube_code = Private.storage.local.get( 'youtube_code' );
         if( 'undefined' !== typeof youtube_code && null !== youtube_code ) {
             Private.publish( 'verifying', { service: 'youtube', 'code': youtube_code } );
             Private.do_confirm( 'youtube', { 'code': youtube_code } );
-            Private.storage.session.delete( 'youtube_code' );
+            Private.storage.local.delete( 'youtube_code' );
         }
 
-		var windows_code = Private.storage.session.get( 'windows_code' );
+		var windows_code = Private.storage.local.get( 'windows_code' );
 		if( 'undefined' !== typeof windows_code && null !== windows_code  ) {
 			Private.publish( 'verifying', { service: 'windows', 'code': windows_code } );
 			Private.do_confirm( 'windows', { 'code': windows_code } );
-			Private.storage.session.delete( 'windows_code' );
+			Private.storage.local.delete( 'windows_code' );
 		}
 
-		var github_code = Private.storage.session.get( 'github_code' );
+		var github_code = Private.storage.local.get( 'github_code' );
 		if( 'undefined' !== typeof github_code && null !== github_code  ) {
 			Private.publish( 'verifying', { service: 'github', 'code': github_code } );
 			Private.do_confirm( 'github', { 'code': github_code } );
-			Private.storage.session.delete( 'github_code' );
+			Private.storage.local.delete( 'github_code' );
 		}
 
-		var instagram_code = Private.storage.session.get( 'instagram_code' );
+		var instagram_code = Private.storage.local.get( 'instagram_code' );
 		if( 'undefined' !== typeof instagram_code && null !== instagram_code  ) {
 			Private.publish( 'verifying', { service: 'instagram', 'code': instagram_code } );
 			Private.do_confirm( 'instagram', { 'code': instagram_code } );
-			Private.storage.session.delete( 'instagram_code' );
+			Private.storage.local.delete( 'instagram_code' );
 		}
 
-		var wordpress_code = Private.storage.session.get( 'wordpress_code' );
+		var wordpress_code = Private.storage.local.get( 'wordpress_code' );
 		if( 'undefined' !== typeof wordpress_code && null !== wordpress_code  ) {
 			Private.publish( 'verifying', { service: 'wordpress', 'code': github_code } );
 			Private.do_confirm( 'wordpress', { 'code': wordpress_code } );
-			Private.storage.session.delete( 'wordpress_code' );
+			Private.storage.local.delete( 'wordpress_code' );
 		}
 
-        var reddit_code = Private.storage.session.get( 'reddit_code' );
+        var reddit_code = Private.storage.local.get( 'reddit_code' );
         if( 'undefined' !== typeof reddit_code && null !== reddit_code  ) {
             Private.publish( 'verifying', { service: 'reddit', 'code': github_code } );
             Private.do_confirm( 'reddit', { 'code': reddit_code } );
-            Private.storage.session.delete( 'reddit_code' );
+            Private.storage.local.delete( 'reddit_code' );
         }
 
-		var tumblr_token = Private.storage.session.get( 'tumblr_oauth_request_token' );
-		var tumblr_token_secret = Private.storage.session.get( 'tumblr_oauth_request_token_secret' );
-		var tumblr_verifier = Private.storage.session.get( 'tumblr_oauth_request_verifier' );
+		var tumblr_token = Private.storage.local.get( 'tumblr_oauth_request_token' );
+		var tumblr_token_secret = Private.storage.local.get( 'tumblr_oauth_request_token_secret' );
+		var tumblr_verifier = Private.storage.local.get( 'tumblr_oauth_request_verifier' );
 		if( 'undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier ) {
 			Private.publish( 'verifying', { service: 'tumblr', 'oauth_token': tumblr_token, 'oauth_verifier': tumblr_verifier } );
 			Private.do_confirm( 'tumblr', { 'oauth_token': tumblr_token, 'oauth_token_secret': tumblr_token_secret, 'oauth_verifier': tumblr_verifier } );
-			Private.storage.session.delete( 'tumblr_oauth_request_token' );
-			Private.storage.session.delete( 'tumblr_oauth_request_token_secret' );
-			Private.storage.session.delete( 'tumblr_oauth_request_verifier' );
+			Private.storage.local.delete( 'tumblr_oauth_request_token' );
+			Private.storage.local.delete( 'tumblr_oauth_request_token_secret' );
+			Private.storage.local.delete( 'tumblr_oauth_request_verifier' );
 		}
 
 
-		var vimeo_token = Private.storage.session.get( 'vimeo_oauth_request_token' );
-		var vimeo_token_secret = Private.storage.session.get( 'vimeo_oauth_request_token_secret' );
-		var vimeo_verifier = Private.storage.session.get( 'vimeo_oauth_request_verifier' );
+		var vimeo_token = Private.storage.local.get( 'vimeo_oauth_request_token' );
+		var vimeo_token_secret = Private.storage.local.get( 'vimeo_oauth_request_token_secret' );
+		var vimeo_verifier = Private.storage.local.get( 'vimeo_oauth_request_verifier' );
 		if( 'undefined' !== typeof vimeo_token && null !== vimeo_token && 'undefined' !== typeof vimeo_verifier && null !== vimeo_verifier ) {
 			Private.publish( 'verifying', { service: 'tumblr', 'oauth_token': vimeo_token, 'oauth_verifier': vimeo_verifier } );
 			Private.do_confirm( 'vimeo', { 'oauth_token': vimeo_token, 'oauth_token_secret': vimeo_token_secret, 'oauth_verifier': vimeo_verifier } );
-			Private.storage.session.delete( 'vimeo_oauth_request_token' );
-			Private.storage.session.delete( 'vimeo_oauth_request_token_secret' );
-			Private.storage.session.delete( 'vimeo_oauth_request_verifier' );
+			Private.storage.local.delete( 'vimeo_oauth_request_token' );
+			Private.storage.local.delete( 'vimeo_oauth_request_token_secret' );
+			Private.storage.local.delete( 'vimeo_oauth_request_verifier' );
 		}
 
 
 
-		var yahoo_token = Private.storage.session.get( 'yahoo_oauth_request_token' );
-		var yahoo_token_secret = Private.storage.session.get( 'yahoo_oauth_request_token_secret' );
-		var yahoo_verifier = Private.storage.session.get( 'yahoo_oauth_request_verifier' );
+		var yahoo_token = Private.storage.local.get( 'yahoo_oauth_request_token' );
+		var yahoo_token_secret = Private.storage.local.get( 'yahoo_oauth_request_token_secret' );
+		var yahoo_verifier = Private.storage.local.get( 'yahoo_oauth_request_verifier' );
 		if( 'undefined' !== typeof yahoo_token && null !== yahoo_token && 'undefined' !== typeof yahoo_verifier && null !== yahoo_verifier ) {
 			Private.publish( 'verifying', { service: 'yahoo', 'oauth_token': yahoo_token, 'oauth_verifier': yahoo_verifier } );
 			Private.do_confirm( 'yahoo', { 'oauth_token': yahoo_token, 'oauth_token_secret': yahoo_token_secret, 'oauth_verifier': yahoo_verifier } );
-			Private.storage.session.delete( 'yahoo_oauth_request_token' );
-			Private.storage.session.delete( 'yahoo_oauth_request_token_secret' );
-			Private.storage.session.delete( 'yahoo_oauth_request_verifier' );
+			Private.storage.local.delete( 'yahoo_oauth_request_token' );
+			Private.storage.local.delete( 'yahoo_oauth_request_token_secret' );
+			Private.storage.local.delete( 'yahoo_oauth_request_verifier' );
 		}
 
-		var linkedin_token = Private.storage.session.get( 'linkedin_oauth_request_token' );
-		var linkedin_token_secret = Private.storage.session.get( 'linkedin_oauth_request_token_secret' );
-		var linkedin_verifier = Private.storage.session.get( 'linkedin_oauth_request_verifier' );
+		var linkedin_token = Private.storage.local.get( 'linkedin_oauth_request_token' );
+		var linkedin_token_secret = Private.storage.local.get( 'linkedin_oauth_request_token_secret' );
+		var linkedin_verifier = Private.storage.local.get( 'linkedin_oauth_request_verifier' );
 		if( 'undefined' !== typeof linkedin_token && null !== linkedin_token && 'undefined' !== typeof linkedin_verifier && null !== linkedin_verifier ) {
 			Private.publish( 'verifying', { service: 'linkedin', 'oauth_token': linkedin_token, 'oauth_verifier': linkedin_verifier } );
 			Private.do_confirm( 'linkedin', { 'oauth_token': linkedin_token, 'oauth_token_secret': linkedin_token_secret, 'oauth_verifier': linkedin_verifier } );
-			Private.storage.session.delete( 'linkedin_oauth_request_token' );
-			Private.storage.session.delete( 'linkedin_oauth_request_token_secret' );
-			Private.storage.session.delete( 'linkedin_oauth_request_verifier' );
+			Private.storage.local.delete( 'linkedin_oauth_request_token' );
+			Private.storage.local.delete( 'linkedin_oauth_request_token_secret' );
+			Private.storage.local.delete( 'linkedin_oauth_request_verifier' );
 		}
 
 
-        var evernote_token = Private.storage.session.get( 'evernote_oauth_request_token' );
-        var evernote_token_secret = Private.storage.session.get( 'evernote_oauth_request_token_secret' );
-        var evernote_verifier = Private.storage.session.get( 'evernote_oauth_request_verifier' );
+        var evernote_token = Private.storage.local.get( 'evernote_oauth_request_token' );
+        var evernote_token_secret = Private.storage.local.get( 'evernote_oauth_request_token_secret' );
+        var evernote_verifier = Private.storage.local.get( 'evernote_oauth_request_verifier' );
         if( 'undefined' !== typeof evernote_token && null !== evernote_token && 'undefined' !== typeof evernote_verifier && null !== evernote_verifier ) {
             Private.publish( 'verifying', { service: 'evernote', 'oauth_token': evernote_token, 'oauth_verifier': evernote_verifier } );
             Private.do_confirm( 'evernote', { 'oauth_token': evernote_token, 'oauth_token_secret': evernote_token_secret, 'oauth_verifier': evernote_verifier } );
-            Private.storage.session.delete( 'evernote_oauth_request_token' );
-            Private.storage.session.delete( 'evernote_oauth_request_token_secret' );
-            Private.storage.session.delete( 'evernote_oauth_request_verifier' );
+            Private.storage.local.delete( 'evernote_oauth_request_token' );
+            Private.storage.local.delete( 'evernote_oauth_request_token_secret' );
+            Private.storage.local.delete( 'evernote_oauth_request_verifier' );
         }
 
 
@@ -2976,40 +3090,40 @@ var Accounts = ( function() {
 		var url_vars = Private.utilities.getUrlVars();
 		
 		if( 'undefined' !== typeof url_vars.code && 'facebook' === url_vars.service ) {
-			Private.storage.session.set( 'facebook_code', url_vars.code );
+			Private.storage.local.set( 'facebook_code', url_vars.code );
 			Private.publish( 'verified', { service: 'facebook', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'facebook' ) );
 		}	
 		
 		if( 'undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier ) {
 			if( 'tumblr' === url_vars.service ) {
-				Private.storage.session.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.storage.local.set( 'tumblr_oauth_request_token', url_vars.oauth_token );
+				Private.storage.local.set( 'tumblr_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'tumblr', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
 				Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'tumblr' ) );
 			} else if( 'yahoo' === url_vars.service ) {
-				Private.storage.session.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.storage.local.set( 'yahoo_oauth_request_token', url_vars.oauth_token );
+				Private.storage.local.set( 'yahoo_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'yahoo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'yahoo' ) );
 			} else if( 'linkedin' === url_vars.service ) {
-				Private.storage.session.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.storage.local.set( 'linkedin_oauth_request_token', url_vars.oauth_token );
+				Private.storage.local.set( 'linkedin_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'linkedin', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'linkedin' ) );
 			} else if( 'vimeo' === url_vars.service ) {
-				Private.storage.session.set( 'vimeo_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'vimeo_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.storage.local.set( 'vimeo_oauth_request_token', url_vars.oauth_token );
+				Private.storage.local.set( 'vimeo_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'vimeo', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
 				Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'vimeo' ) );
 			} else if( 'evernote' === url_vars.service ) {
-                Private.storage.session.set( 'evernote_oauth_request_token', url_vars.oauth_token );
-                Private.storage.session.set( 'evernote_oauth_request_verifier', url_vars.oauth_verifier );
+                Private.storage.local.set( 'evernote_oauth_request_token', url_vars.oauth_token );
+                Private.storage.local.set( 'evernote_oauth_request_verifier', url_vars.oauth_verifier );
                 Private.publish( 'verified', { service: 'evernote', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier, oauth_token_secret: url_vars.oauth_token_secret } );
                 Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'evernote' ) );
             } else { //twitter doesn't use service var TODO: fix?
-				Private.storage.session.set( 'twitter_oauth_request_token', url_vars.oauth_token );
-				Private.storage.session.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
+				Private.storage.local.set( 'twitter_oauth_request_token', url_vars.oauth_token );
+				Private.storage.local.set( 'twitter_oauth_request_verifier', url_vars.oauth_verifier );
 				Private.publish( 'verified', { service: 'twitter', oauth_token: url_vars.oauth_token, oauth_verifier: url_vars.oauth_verifier } );
 				Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'twitter' ) );
 			}
@@ -3022,56 +3136,56 @@ var Accounts = ( function() {
 		}
 
 		if( 'undefined' !== typeof url_vars.code && 'windows' === url_vars.service ) {
-			Private.storage.session.set( 'windows_code', url_vars.code );
+			Private.storage.local.set( 'windows_code', url_vars.code );
 			Private.publish( 'verified', { service: 'windows', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'windows' ) );
 		}	
 		
 		if( 'undefined' !== typeof url_vars.code && 'github' === url_vars.service ) {
-			Private.storage.session.set( 'github_code', url_vars.code );
+			Private.storage.local.set( 'github_code', url_vars.code );
 			Private.publish( 'verified', { service: 'github', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'github' ) );
 		}	
 		
 		if( 'undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service ) {
-			Private.storage.session.set( 'foursquare_code', url_vars.code );
+			Private.storage.local.set( 'foursquare_code', url_vars.code );
 			Private.publish( 'verified', { service: 'foursquare', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'foursquare' ) );
 		}
 
 
 		if( 'undefined' !== typeof url_vars.code && 'google' === url_vars.service ) {
-			Private.storage.session.set( 'google_code', url_vars.code );
+			Private.storage.local.set( 'google_code', url_vars.code );
 			Private.publish( 'verified', { service: 'google', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'google' ) );
 		}
 
 		if( 'undefined' !== typeof url_vars.code && 'instagram' === url_vars.service ) {
-			Private.storage.session.set( 'instagram_code', url_vars.code );
+			Private.storage.local.set( 'instagram_code', url_vars.code );
 			Private.publish( 'verified', { service: 'instagram', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'instagram' ) );
 		}
 
 		if( 'undefined' !== typeof url_vars.code && 'wordpress' === url_vars.service ) {
-			Private.storage.session.set( 'wordpress_code', url_vars.code );
+			Private.storage.local.set( 'wordpress_code', url_vars.code );
 			Private.publish( 'verified', { service: 'wordpress', 'code': url_vars.code } );
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'wordpress' ) );
 		}
 
         if( 'undefined' !== typeof url_vars.code && 'reddit' === url_vars.service ) {
-            Private.storage.session.set( 'reddit_code', url_vars.code );
+            Private.storage.local.set( 'reddit_code', url_vars.code );
             Private.publish( 'verified', { service: 'reddit', 'code': url_vars.code } );
             Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'reddit' ) );
         }
 
         if( 'undefined' !== typeof url_vars.code && 'youtube' === url_vars.service ) {
-            Private.storage.session.set( 'youtube_code', url_vars.code );
+            Private.storage.local.set( 'youtube_code', url_vars.code );
             Private.publish( 'verified', { service: 'youtube', 'code': url_vars.code } );
             Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'youtube' ) );
         }
 
         if( 'undefined' !== typeof url_vars.code && 'blogger' === url_vars.service ) {
-            Private.storage.session.set( 'blogger_code', url_vars.code );
+            Private.storage.local.set( 'blogger_code', url_vars.code );
             Private.publish( 'verified', { service: 'blogger', 'code': url_vars.code } );
             Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'blogger' ) );
         }
@@ -3127,8 +3241,8 @@ var Accounts = ( function() {
 
 		} else if( 'yahoo' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'yahoo_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'yahoo_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'yahoo_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'yahoo_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'yahoo', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'yahoo', 'url': data.login_url } );
 			window.location = data.login_url;
@@ -3166,8 +3280,8 @@ var Accounts = ( function() {
 
 		} else if( 'windows' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'windows_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'windows_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'windows_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'windows_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'windows', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'windows', 'url': data.login_url } );
 			window.location = data.login_url;
@@ -3204,8 +3318,8 @@ var Accounts = ( function() {
 
 		} else if( 'wordpress' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'wordpress_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'wordpress_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'wordpress_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'wordpress_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'wordpress', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'wordpress', 'url': data.login_url } );
 			window.location = data.login_url;
@@ -3238,8 +3352,8 @@ var Accounts = ( function() {
 
 		} else if( 'github' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'github_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'github_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'github_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'github_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'github', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'github', 'url': data.login_url } );
 			window.location = data.login_url;
@@ -3282,8 +3396,8 @@ var Accounts = ( function() {
 
 		} else if( 'vimeo' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'vimeo_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'vimeo_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'vimeo_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'vimeo_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'vimeo', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'vimeo', 'url': data.login_url } );
 
@@ -3327,8 +3441,8 @@ var Accounts = ( function() {
 
 		} else if( 'tumblr' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'tumblr_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'tumblr_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'tumblr_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'tumblr_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'tumblr', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'tumblr', 'url': data.login_url } );
 
@@ -3414,8 +3528,8 @@ var Accounts = ( function() {
 
 		} else if( 'instagram' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'instagram_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'instagram_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'instagram_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'instagram_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'instagram', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'instagram', 'url': data.login_url } );
 			window.location = data.login_url;
@@ -3459,8 +3573,8 @@ var Accounts = ( function() {
 
 		} else if( 'linkedin' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-			Private.storage.session.set( 'linkedin_oauth_request_token', data.request_token );
-			Private.storage.session.set( 'linkedin_oauth_request_token_secret', data.request_token_secret );
+			Private.storage.local.set( 'linkedin_oauth_request_token', data.request_token );
+			Private.storage.local.set( 'linkedin_oauth_request_token_secret', data.request_token_secret );
 			Private.publish( 'session_redirect', { service: 'linkedin', 'url': data.login_url } );
 			Private.publish( 'redirect', { service: 'linkedin', 'url': data.login_url } );
 			window.location = data.login_url;
@@ -3504,8 +3618,8 @@ var Accounts = ( function() {
 
         } else if( 'reddit' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-            Private.storage.session.set( 'reddit_oauth_request_token', data.request_token );
-            Private.storage.session.set( 'reddit_oauth_request_token_secret', data.request_token_secret );
+            Private.storage.local.set( 'reddit_oauth_request_token', data.request_token );
+            Private.storage.local.set( 'reddit_oauth_request_token_secret', data.request_token_secret );
             Private.publish( 'session_redirect', { service: 'reddit', 'url': data.login_url } );
             Private.publish( 'redirect', { service: 'reddit', 'url': data.login_url } );
             window.location = data.login_url;
@@ -3547,8 +3661,8 @@ var Accounts = ( function() {
 
         } else if( 'evernote' === data.service &&  'undefined' !== typeof data.login_url ) {
 
-            Private.storage.session.set( 'evernote_oauth_request_token', data.request_token );
-            Private.storage.session.set( 'evernote_oauth_request_token_secret', data.request_token_secret );
+            Private.storage.local.set( 'evernote_oauth_request_token', data.request_token );
+            Private.storage.local.set( 'evernote_oauth_request_token_secret', data.request_token_secret );
             Private.publish( 'session_redirect', { service: 'evernote', 'url': data.login_url } );
             Private.publish( 'redirect', { service: 'evernote', 'url': data.login_url } );
 
@@ -3632,7 +3746,14 @@ var Accounts = ( function() {
 	};
 		
 	Private.storage.local.get = function( get_key ) {
-		return JSON.parse( Private.store.getItem( Private.prefix + '_' + get_key ) );
+		var res = Private.store.getItem( Private.prefix + '_' + get_key );
+		try { 
+			parsed = JSON.parse( Private.store.getItem( Private.prefix + '_' + get_key ) );
+			res = parsed;
+		} catch ( e ) { 
+			/* do nothing */
+		}
+		return res;
 	};
 
 	Private.storage.local.set_batch = function( dictionary ) {
