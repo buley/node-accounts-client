@@ -10,7 +10,7 @@ var Accounts = ( function() {
 	Private.connected = false;
 	Private.attributes = [ 'birthdate', 'description', 'email', 'id', 'image', 'locale', 'location', 'name', 'profile_url', 'username', 'personal_url', 'stats' ];
 	Private.prefix = 'accounts';
-	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo', 'youtube', 'blogger', 'evernote', 'reddit' ];
+	Private.allServices = [ 'facebook', 'google', 'linkedin', 'twitter', 'windows', 'foursquare', 'yahoo',  'github', 'tumblr', 'instagram', 'wordpress', 'vimeo', 'youtube', 'blogger', 'evernote', 'reddit', 'soundcloud' ];
 	Private.debug = false;
 	Private.unhelpfulErrorMessage = 'Something went awry.';
 	Private.activeServices = [];
@@ -287,6 +287,7 @@ var Accounts = ( function() {
             case 'wordpress': result = 'WordPress'; break;
             case 'reddit': result = 'Reddit'; break;
             case 'youtube': result = 'YouTube'; break;
+            case 'soundcloud': result = 'SoundCloud'; break;
 			default: break;
 		};
 		return result;
@@ -550,55 +551,6 @@ var Accounts = ( function() {
 			};
 		}
 	};
-
-	//TODO: rename response var to request
-	/*Public.prototype.request = function( response ) {
-        if ( 'account' === response.response_type ) {
-            switch( response.service ) {
-                case 'twitter':
-                    Private.twitter.account_request( response );
-                    break;
-                case 'google':
-                    Private.google.account_request( response );
-                    break;
-                case 'facebook':
-                    Private.facebook.account_request( response );
-                    break;
-                case 'foursquare':
-                    Private.foursquare.account_request( response );
-                    break;
-                case 'tumblr':
-                    Private.tumblr.account_request( response );
-                    break;
-                case 'github':
-                    Private.github.account_request( response );
-                    break;
-                case 'yahoo':
-                    Private.yahoo.account_request( response );
-                    break;
-                case 'linkedin':
-                    Private.linkedin.account_request( response );
-                    break;
-                case 'windows':
-                    Private.windows.account_request( response );
-                    break;
-                case 'reddit':
-                    Private.reddit.account_request( response );
-                    break;
-                case 'evernote':
-                    Private.evernote.account_request( response );
-                    break;
-                case 'blogger':
-                    Private.blogger.account_request( response );
-                    break;
-                case 'youtube':
-                    Private.youtube.account_request( response );
-                    break;
-                default:
-                    break;
-            }
-        }
-	};*/
 
 	Private.connect = function( service, oauth_type ) {
 		if( Public.prototype.disabled( service ) ) {
@@ -1134,6 +1086,9 @@ var Accounts = ( function() {
             case 'evernote':
                 access_token = Private.storage.local.get( 'evernote_access_token' );
                 break;
+            case 'soundcloud':
+                access_token = Private.storage.local.get( 'soundcloud_access_token' );
+                break;
 			default:
 				break;
 		};
@@ -1210,6 +1165,9 @@ var Accounts = ( function() {
                 break;
             case 'blogger':
                 access_token_secret = Private.storage.local.get( 'blogger_access_token_secret' );
+                break;
+            case 'soundcloud':
+                access_token_secret = Private.storage.local.get( 'soundcloud_access_token_secret' );
                 break;
             case 'evernote':
                 access_token_secret = Private.storage.local.get( 'evernote_access_token_secret' );
@@ -1310,6 +1268,8 @@ var Accounts = ( function() {
                     case 'reddit':
 						id = profile.id;
                         break;
+                    case 'soundcloud':
+                        id = profile.id;
 					default:
 						break;
 				};
@@ -1387,6 +1347,8 @@ var Accounts = ( function() {
                     case 'reddit':
 						names = null;
                         break;
+                    case 'soundcloud':
+                        names.display = profile.full_name;
 					default:
 						names = null;
 						break;
@@ -1449,6 +1411,8 @@ var Accounts = ( function() {
                     case 'blogger':
                         break;
                     case 'reddit':
+                        break;
+                    case 'soundcloud':
                         break;
 					default:
 						break;
@@ -1531,6 +1495,9 @@ var Accounts = ( function() {
                     case 'reddit':
 						birthdate = null;
                         break;
+                    case 'soundcloud':
+                        birthdate = null;
+                        break;
 					default:
 						birthdate = null;
 						break;
@@ -1592,6 +1559,9 @@ var Accounts = ( function() {
                         break;
                     case 'reddit':
                         break;
+                    case 'soundcloud':
+                        image = profile.avatar_url;
+                        break;
 					default:
 						break;
 				};
@@ -1646,7 +1616,9 @@ var Accounts = ( function() {
                         break;
                     case 'reddit':
                         break;
-
+                    case 'soundcloud':
+                        personal_url = profile.website;
+                        break;
 					default:
 						break;
 				};
@@ -1790,6 +1762,17 @@ var Accounts = ( function() {
 							, updated: null
 						};
                         break;
+                    case 'soundcloud':
+                        stats = {
+                            followers_count: profile.followers_count
+                            , followings_count: profile.followings_count
+                            , subscriptions: profile.subscriptions
+                            , public_favorites_count: profile.public_favorites_count
+                            , track_count: profile.track_count
+                            , playlist_count: profile.playlist_count
+                            , private_tracks_count: profile.private_tracks_count
+                            , private_playlists_count: profile.private_playlists_count
+                        };
 					default:
 						break;
 				};
@@ -1858,6 +1841,9 @@ var Accounts = ( function() {
                     case 'reddit':
 						profile_url = "http://www.reddit.com/user/" + profile.name
                         break;
+                    case 'soundcloud':
+                        profile_url = "http://soundcloud.com/" + profile.username
+                        break;
 					default:
 						break;
 				};
@@ -1913,7 +1899,8 @@ var Accounts = ( function() {
                         break;
                     case 'reddit':
                         break;
-
+                    case 'soundcloud':
+                        break;
 					default:
 						break;
 				};
@@ -1974,6 +1961,9 @@ var Accounts = ( function() {
                     case 'reddit':
 						username = profile.name;
                         break;
+                    case 'soundcloud':
+                        username = profile.username;
+                        break;
 					default:
 						break;
 				};
@@ -2029,6 +2019,9 @@ var Accounts = ( function() {
                     case 'blogger':
                         break;
                     case 'reddit':
+                        break;
+                    case 'soundcloud':
+                        description = profile.description;
                         break;
 					default:
 						break;
@@ -2094,6 +2087,9 @@ var Accounts = ( function() {
                     case 'blogger':
                         break;
                     case 'reddit':
+                        break;
+                    case 'soundcloud':
+                        location = profile.city || profile.country;
                         break;
 					default:
 						break;
@@ -2462,6 +2458,31 @@ var Accounts = ( function() {
 
 	};
 
+    /* SoundCloud */
+
+    Private.soundcloud.handle_confirm = function( params ) {
+
+        var data = null;
+        console.log('confirming soundcloud',params);
+
+        if( !!params.profile ) {
+            data = params.profile || {};
+            data.service = 'soundcloud';
+            Private.publish( 'profile', { service: 'soundcloud', data: data } );
+            Private.setProfile( 'soundcloud', data );
+        }
+
+        var access_token = params.access_token
+            , refresh_token = params.refresh_token;
+
+        if( !!access_token ) {
+            Private.storage.local.set( 'soundcloud_access_token', access_token );
+            Private.storage.local.set( 'soundcloud_refresh_token', refresh_token );
+            Private.publish( 'sessioned', { service: 'soundcloud', oauth_token: access_token, profile: data } );
+        }
+
+    };
+
 	/* WordPress */
 
 	Private.wordpress.handle_confirm = function( params ) {
@@ -2614,7 +2635,7 @@ var Accounts = ( function() {
             Private.publish( 'profile', { service: 'reddit', data: data } );
             Private.setProfile( 'reddit', data );
         }
-
+        console.log('confirming reddit',params.access_token,params);
         var access_token = params.access_token;
 
         if( !!access_token ) {
@@ -3009,6 +3030,13 @@ var Accounts = ( function() {
 			Private.storage.local.delete( 'instagram_code' );
 		}
 
+        var soundcloud_code = Private.storage.local.get( 'soundcloud_code' );
+        if( 'undefined' !== typeof soundcloud_code && null !== soundcloud_code  ) {
+            Private.publish( 'verifying', { service: 'soundcloud', 'code': github_code } );
+            Private.do_confirm( 'soundcloud', { 'code': soundcloud_code } );
+            Private.storage.local.delete( 'soundcloud_code' );
+        }
+
 		var wordpress_code = Private.storage.local.get( 'wordpress_code' );
 		if( 'undefined' !== typeof wordpress_code && null !== wordpress_code  ) {
 			Private.publish( 'verifying', { service: 'wordpress', 'code': github_code } );
@@ -3166,6 +3194,12 @@ var Accounts = ( function() {
 			Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'instagram' ) );
 		}
 
+        if( 'undefined' !== typeof url_vars.code && 'soundcloud' === url_vars.service ) {
+            Private.storage.local.set( 'soundcloud_code', url_vars.code );
+            Private.publish( 'verified', { service: 'soundcloud', 'code': url_vars.code } );
+            Private.state.replaceCurrent( Private.redirectTo.replace( ':service', 'soundcloud' ) );
+        }
+
 		if( 'undefined' !== typeof url_vars.code && 'wordpress' === url_vars.service ) {
 			Private.storage.local.set( 'wordpress_code', url_vars.code );
 			Private.publish( 'verified', { service: 'wordpress', 'code': url_vars.code } );
@@ -3211,6 +3245,7 @@ var Accounts = ( function() {
             , 'youtube': 'youtube_access_token'
             , 'evernote': 'evernote_access_token'
             , 'reddit': 'reddit_access_token'
+            , 'soundcloud': 'soundcloud_access_token'
 		};
 
 		var statuses = {};
@@ -3548,7 +3583,9 @@ var Accounts = ( function() {
 
 		} else if( 'instagram' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
 
-			Private.publish( 'confirm', { service: 'instagram' } );
+            Private.storage.local.delet( 'instagram_oauth_request_token' );
+            Private.storage.local.delete( 'instagram_oauth_request_token_secret' );
+            Private.publish( 'confirm', { service: 'instagram' } );
 			Private.instagram.handle_confirm( data );
 
 		} else if( 'instagram' === data.service &&  'unauthorized' === data.account_status ) {
@@ -3644,6 +3681,50 @@ var Accounts = ( function() {
         } else if( 'reddit' === data.service &&  'unauthorized' === data.account_status ) {
 
             Private.unsession( 'reddit' );
+            Private.state.replaceCurrent( Private.redirectTo );
+
+        }
+
+    };
+
+    /* SoundCloud */
+
+    Private.soundcloud.account_request = function( data ) {
+
+        if( 'undefined' !== typeof data.logout_url ) {
+
+            private.publish( 'unsession', { service: 'soundcloud' } );
+            private.unsession( 'soundcloud' );
+            Private.state.replaceCurrent( Private.redirectTo );
+
+        } else if( 'soundcloud' === data.service &&  'undefined' !== typeof data.login_url ) {
+
+            Private.storage.local.set( 'soundcloud_oauth_request_token', data.request_token );
+            Private.storage.local.set( 'soundcloud_oauth_request_token_secret', data.request_token_secret );
+            Private.publish( 'session_redirect', { service: 'soundcloud', 'url': data.login_url } );
+            Private.publish( 'redirect', { service: 'soundcloud', 'url': data.login_url } );
+            window.location = data.login_url;
+
+        } else if( 'soundcloud' === data.service &&  'undefined' !== typeof data.connect_status ) {
+
+            if( 'connected' === data.connect_status ) {
+
+                Private.publish( 'confirmed', { service: 'soundcloud' } );
+
+            } else {
+
+                Private.unsession( 'soundcloud' );
+
+            }
+
+        } else if( 'soundcloud' === data.service &&  'authorized' === data.status && 'undefined' === typeof data.connect_status ) {
+
+            Private.publish( 'confirm', { service: 'soundcloud' } );
+            Private.soundcloud.handle_confirm( data );
+
+        } else if( 'soundcloud' === data.service &&  'unauthorized' === data.account_status ) {
+
+            Private.unsession( 'soundcloud' );
             Private.state.replaceCurrent( Private.redirectTo );
 
         }
