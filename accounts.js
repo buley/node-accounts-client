@@ -1,4 +1,4 @@
-var Accounts = (function () {
+define([], function() {
 
     /* API is a singleton-patterned private object */
 
@@ -4485,4 +4485,4 @@ var Accounts = (function () {
 
     return Public;
 
-}());
+});
