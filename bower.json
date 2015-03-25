@@ -1,7 +1,7 @@
 {
   "name": "node-accounts",
   "main": "accounts.min.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "homepage": "https://github.com/mcnaughton/node-accounts",
   "authors": [
     "Taylor Buley <taylor.buley@mcnaughton.media>"
