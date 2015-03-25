@@ -1,0 +1,21 @@
+{
+  "name": "node-accounts",
+  "main": "accounts.min.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mcnaughton/node-accounts",
+  "authors": [
+    "Taylor Buley <taylor.buley@mcnaughton.media>"
+  ],
+  "description": "Client side component of node-accounts oAuth library",
+  "moduleType": [
+    "amd"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
