@@ -4364,9 +4364,13 @@ API.evernote.account_request = function (data) {
 /* History */
 
 API.state = API.state || {};
-API.history = window.history;
+API.history = !!window ? window.history : null;
 
 API.state.replaceCurrent = function (stateUrl, stateTitle, stateObj) {
+
+    if (!API.history) {
+        return;
+    }
 
     if (null === stateObj || 'undefined' === typeof stateObj) {
         stateObj = API.history.getCurrentStateObj;
@@ -4376,6 +4380,10 @@ API.state.replaceCurrent = function (stateUrl, stateTitle, stateObj) {
 };
 
 API.state.push = function (state, stateTitle, stateObj) {
+
+    if (!API.history) {
+        return;
+    }
 
     if ('string' !== typeof state && state.length > 0) {
         stateUrl = state.join('/');
