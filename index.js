@@ -2486,7 +2486,6 @@ API.instagram.handle_confirm = function (params) {
 
     if ( !! access_token) {
 
-        API.storage.local.set('instagram_access_token', access_token);
         API.publish('sessioned', {
             service: 'instagram',
             oauth_token: access_token,
@@ -2518,7 +2517,6 @@ API.facebook.handle_confirm = function (params) {
 
     if ( !! access_token) {
 
-        API.storage.local.set('facebook_access_token', access_token);
         API.publish('sessioned', {
             service: 'facebook',
             oauth_token: access_token,
@@ -2548,7 +2546,6 @@ API.foursquare.handle_confirm = function (params) {
     var access_token = params.access_token;
 
     if ( !! access_token) {
-        API.storage.local.set('foursquare_access_token', access_token);
         API.publish('sessioned', {
             service: 'foursquare',
             oauth_token: access_token,
@@ -2579,8 +2576,6 @@ API.soundcloud.handle_confirm = function (params) {
         refresh_token = params.refresh_token;
 
     if ( !! access_token) {
-        API.storage.local.set('soundcloud_access_token', access_token);
-        API.storage.local.set('soundcloud_refresh_token', refresh_token);
         API.publish('sessioned', {
             service: 'soundcloud',
             oauth_token: access_token,
@@ -2609,7 +2604,6 @@ API.wordpress.handle_confirm = function (params) {
     var access_token = params.access_token;
 
     if ( !! access_token) {
-        API.storage.local.set('wordpress_access_token', access_token);
         API.publish('sessioned', {
             service: 'wordpress',
             oauth_token: access_token,
@@ -2639,7 +2633,6 @@ API.google.handle_confirm = function (params) {
     var access_token = params.access_token;
 
     if ( !! access_token) {
-        API.storage.local.set('google_access_token', access_token);
         API.publish('sessioned', {
             service: 'google',
             oauth_token: access_token,
@@ -2668,7 +2661,6 @@ API.youtube.handle_confirm = function (params) {
     var access_token = params.access_token;
 
     if ( !! access_token) {
-        API.storage.local.set('youtube_access_token', access_token);
         API.publish('sessioned', {
             service: 'youtube',
             oauth_token: access_token,
@@ -2697,7 +2689,6 @@ API.blogger.handle_confirm = function (params) {
     var access_token = params.access_token;
 
     if ( !! access_token) {
-        API.storage.local.set('blogger_access_token', access_token);
         API.publish('sessioned', {
             service: 'blogger',
             oauth_token: access_token,
@@ -2728,8 +2719,6 @@ API.twitter.handle_confirm = function (params) {
 
     if ( !! access_token) {
 
-        API.storage.local.set('twitter_access_token', access_token);
-        API.storage.local.set('twitter_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'twitter',
             oauth_token: access_token,
@@ -2762,8 +2751,6 @@ API.evernote.handle_confirm = function (params) {
 
     if ( !! access_token) {
 
-        API.storage.local.set('evernote_access_token', access_token);
-        API.storage.local.set('evernote_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'evernote',
             oauth_token: access_token,
@@ -2793,7 +2780,6 @@ API.reddit.handle_confirm = function (params) {
     var access_token = params.access_token;
 
     if ( !! access_token) {
-        API.storage.local.set('reddit_access_token', access_token);
         API.publish('sessioned', {
             service: 'reddit',
             oauth_token: access_token,
@@ -2812,7 +2798,6 @@ API.facebook.account_request = function (data) {
                 service: 'facebook'
             });
             API.unsession('facebook');
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'facebook'));
         } else {
             API.publish('unsession_redirect', {
                 service: 'facebook',
@@ -2822,7 +2807,6 @@ API.facebook.account_request = function (data) {
                 service: 'facebook',
                 'url': data.logout_url
             });
-            window.location = data.logout_url;
         }
     } else if ('facebook' === data.service && 'undefined' !== typeof data.login_url) {
 
@@ -2854,7 +2838,6 @@ API.facebook.account_request = function (data) {
     } else if ('facebook' === data.service && 'unauthorized' === data.account_status) {
 
         API.unsession('facebook');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'facebook'));
 
     }
 
@@ -2869,7 +2852,6 @@ API.foursquare.account_request = function (data) {
             service: 'foursquare'
         });
         API.unsession('foursquare');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'foursquare'));
     } else if ('foursquare' === data.service && 'undefined' !== typeof data.login_url) {
 
         API.publish('session_redirect', {
@@ -2880,8 +2862,6 @@ API.foursquare.account_request = function (data) {
             service: 'foursquare',
             'url': data.login_url
         });
-        window.location = data.login_url;
-
     } else if ('foursquare' === data.service && 'authorized' === data.status && 'undefined' === typeof data.connect_status) {
 
         API.publish('confirm', {
@@ -2901,7 +2881,6 @@ API.foursquare.account_request = function (data) {
     } else if ('foursquare' === data.service && 'unauthorized' === data.account_status) {
 
         API.unsession('foursquare');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'foursquare'));
 
     }
 
@@ -2913,7 +2892,6 @@ API.blogger.account_request = function (data) {
             service: 'blogger'
         });
         API.unsession('blogger');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'blogger'));
     } else if ('blogger' === data.service && 'undefined' !== typeof data.login_url) {
         API.publish('session_redirect', {
             service: 'blogger',
@@ -2939,7 +2917,6 @@ API.blogger.account_request = function (data) {
         }
     } else if ('blogger' === data.service && 'unauthorized' === data.account_status) {
         API.unsession('blogger');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'blogger'));
     }
 }
 
@@ -2951,7 +2928,6 @@ API.youtube.account_request = function (data) {
             service: 'youtube'
         });
         API.unsession('youtube');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'youtube'));
     } else if ('youtube' === data.service && 'undefined' !== typeof data.login_url) {
         API.publish('session_redirect', {
             service: 'youtube',
@@ -2961,7 +2937,6 @@ API.youtube.account_request = function (data) {
             service: 'youtube',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('youtube' === data.service && 'authorized' === data.status && 'undefined' === typeof data.connect_status) {
 
@@ -2982,7 +2957,6 @@ API.youtube.account_request = function (data) {
     } else if ('youtube' === data.service && 'unauthorized' === data.account_status) {
 
         API.unsession('youtube');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'youtube'));
 
     }
 
@@ -2997,7 +2971,6 @@ API.google.account_request = function (data) {
             service: 'google'
         });
         API.unsession('google');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'google'));
     } else if ('google' === data.service && 'undefined' !== typeof data.login_url) {
 
         API.publish('session_redirect', {
@@ -3008,7 +2981,6 @@ API.google.account_request = function (data) {
             service: 'google',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('google' === data.service && 'authorized' === data.status && 'undefined' === typeof data.connect_status) {
 
@@ -3029,7 +3001,6 @@ API.google.account_request = function (data) {
     } else if ('google' === data.service && 'unauthorized' === data.account_status) {
 
         API.unsession('google');
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'google'));
 
     }
 
@@ -3053,8 +3024,6 @@ API.yahoo.handle_confirm = function (params) {
     var access_token = params.access_token;
     var access_token_secret = params.access_token_secret;
     if ( !! access_token) {
-        API.storage.local.set('yahoo_access_token', access_token);
-        API.storage.local.set('yahoo_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'yahoo',
             oauth_token: access_token,
@@ -3081,8 +3050,6 @@ API.linkedin.handle_confirm = function (params) {
     var access_token = params.access_token;
     var access_token_secret = params.access_token_secret;
     if ( !! access_token) {
-        API.storage.local.set('linkedin_access_token', access_token);
-        API.storage.local.set('linkedin_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'linkedin',
             oauth_token: access_token,
@@ -3110,8 +3077,6 @@ API.vimeo.handle_confirm = function (params, on_success, on_error) {
     var access_token = params.access_token;
     var access_token_secret = params.access_token_secret;
     if ( !! access_token) {
-        API.storage.local.set('vimeo_access_token', access_token);
-        API.storage.local.set('vimeo_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'vimeo',
             oauth_token: access_token,
@@ -3141,8 +3106,6 @@ API.tumblr.handle_confirm = function (params, on_success, on_error) {
     var access_token = params.access_token;
     var access_token_secret = params.access_token_secret;
     if ( !! access_token) {
-        API.storage.local.set('tumblr_access_token', access_token);
-        API.storage.local.set('tumblr_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'tumblr',
             oauth_token: access_token,
@@ -3175,7 +3138,6 @@ API.windows.handle_confirm = function (params) {
             oauth_token: access_token,
             profile: data
         });
-        API.storage.local.set('windows_access_token', access_token);
     }
 
 };
@@ -3203,7 +3165,6 @@ API.github.handle_confirm = function (params) {
             oauth_token: access_token,
             profile: data
         });
-        API.storage.local.set('github_access_token', access_token);
     }
 
 };
@@ -3226,8 +3187,6 @@ API.twitter.handle_confirm = function (params) {
     var access_token = params.access_token;
     var access_token_secret = params.access_token_secret;
     if ( !! access_token) {
-        API.storage.local.set('twitter_access_token', access_token);
-        API.storage.local.set('twitter_access_token_secret', access_token_secret);
         API.publish('sessioned', {
             service: 'twitter',
             oauth_token: access_token,
@@ -3238,11 +3197,11 @@ API.twitter.handle_confirm = function (params) {
     }
 };
 
-API.confirm = function () {
+    
+API.confirm = function (facebook_code, twitter_token, twitter_verifier, foursquare_code, google_code, blogger_code, youtube_code, windows_code, linkedin_token, linkedin_token_secret, linkedin_verifier, evernote_token, evernote_token_secret, evernote_verifier, yahoo_token, yahoo_token_secret, yahoo_verifier, vimeo_token, vimeo_token_secret, vimeo_verifier, reddit_code, wordpress_code, instagram_code, github_code, soundcloud_code, tumblr_token, tumblr_token_secret, tumblr_verifier) {
 
     var url_vars = API.utilities.getUrlVars();
 
-    var facebook_code = API.storage.local.get('facebook_code');
     if ('undefined' !== typeof facebook_code && null !== facebook_code) {
         API.publish('verifying', {
             service: 'facebook',
@@ -3251,11 +3210,8 @@ API.confirm = function () {
         API.do_confirm('facebook', {
             'code': facebook_code
         });
-        API.storage.local['delete']('facebook_code');
     }
 
-    var twitter_token = API.storage.local.get('twitter_oauth_request_token');
-    var twitter_verifier = API.storage.local.get('twitter_oauth_request_verifier');
     if ('undefined' !== typeof twitter_token && null !== twitter_token && 'undefined' !== typeof twitter_verifier && null !== twitter_verifier) {
         API.publish('verifying', {
             service: 'twitter',
@@ -3266,11 +3222,8 @@ API.confirm = function () {
             'oauth_token': twitter_token,
             'oauth_verifier': twitter_verifier
         });
-        API.storage.local['delete']('twitter_oauth_request_token');
-        API.storage.local['delete']('twitter_oauth_request_verifier');
     }
 
-    var foursquare_code = API.storage.local.get('foursquare_code');
     if ('undefined' !== typeof foursquare_code && null !== foursquare_code) {
         API.publish('verifying', {
             service: 'foursquare',
@@ -3279,10 +3232,8 @@ API.confirm = function () {
         API.do_confirm('foursquare', {
             'code': foursquare_code
         });
-        API.storage.local['delete']('foursquare_code');
     }
 
-    var google_code = API.storage.local.get('google_code');
     if ('undefined' !== typeof google_code && null !== google_code) {
         API.publish('verifying', {
             service: 'google',
@@ -3291,10 +3242,8 @@ API.confirm = function () {
         API.do_confirm('google', {
             'code': google_code
         });
-        API.storage.local['delete']('google_code');
     }
 
-    var blogger_code = API.storage.local.get('blogger_code');
     if ('undefined' !== typeof blogger_code && null !== blogger_code) {
         API.publish('verifying', {
             service: 'blogger',
@@ -3303,10 +3252,8 @@ API.confirm = function () {
         API.do_confirm('blogger', {
             'code': blogger_code
         });
-        API.storage.local['delete']('blogger_code');
     }
 
-    var youtube_code = API.storage.local.get('youtube_code');
     if ('undefined' !== typeof youtube_code && null !== youtube_code) {
         API.publish('verifying', {
             service: 'youtube',
@@ -3315,10 +3262,8 @@ API.confirm = function () {
         API.do_confirm('youtube', {
             'code': youtube_code
         });
-        API.storage.local['delete']('youtube_code');
     }
 
-    var windows_code = API.storage.local.get('windows_code');
     if ('undefined' !== typeof windows_code && null !== windows_code) {
         API.publish('verifying', {
             service: 'windows',
@@ -3327,10 +3272,8 @@ API.confirm = function () {
         API.do_confirm('windows', {
             'code': windows_code
         });
-        API.storage.local['delete']('windows_code');
     }
 
-    var github_code = API.storage.local.get('github_code');
     if ('undefined' !== typeof github_code && null !== github_code) {
         API.publish('verifying', {
             service: 'github',
@@ -3339,10 +3282,8 @@ API.confirm = function () {
         API.do_confirm('github', {
             'code': github_code
         });
-        API.storage.local['delete']('github_code');
     }
 
-    var instagram_code = API.storage.local.get('instagram_code');
     if ('undefined' !== typeof instagram_code && null !== instagram_code) {
         API.publish('verifying', {
             service: 'instagram',
@@ -3351,10 +3292,8 @@ API.confirm = function () {
         API.do_confirm('instagram', {
             'code': instagram_code
         });
-        API.storage.local['delete']('instagram_code');
     }
 
-    var soundcloud_code = API.storage.local.get('soundcloud_code');
     if ('undefined' !== typeof soundcloud_code && null !== soundcloud_code) {
         API.publish('verifying', {
             service: 'soundcloud',
@@ -3363,10 +3302,8 @@ API.confirm = function () {
         API.do_confirm('soundcloud', {
             'code': soundcloud_code
         });
-        API.storage.local['delete']('soundcloud_code');
     }
 
-    var wordpress_code = API.storage.local.get('wordpress_code');
     if ('undefined' !== typeof wordpress_code && null !== wordpress_code) {
         API.publish('verifying', {
             service: 'wordpress',
@@ -3375,10 +3312,8 @@ API.confirm = function () {
         API.do_confirm('wordpress', {
             'code': wordpress_code
         });
-        API.storage.local['delete']('wordpress_code');
     }
 
-    var reddit_code = API.storage.local.get('reddit_code');
     if ('undefined' !== typeof reddit_code && null !== reddit_code) {
         API.publish('verifying', {
             service: 'reddit',
@@ -3387,12 +3322,9 @@ API.confirm = function () {
         API.do_confirm('reddit', {
             'code': reddit_code
         });
-        API.storage.local['delete']('reddit_code');
     }
 
-    var tumblr_token = API.storage.local.get('tumblr_oauth_request_token');
-    var tumblr_token_secret = API.storage.local.get('tumblr_oauth_request_token_secret');
-    var tumblr_verifier = API.storage.local.get('tumblr_oauth_request_verifier');
+
     if ('undefined' !== typeof tumblr_token && null !== tumblr_token && 'undefined' !== typeof tumblr_verifier && null !== tumblr_verifier) {
         API.publish('verifying', {
             service: 'tumblr',
@@ -3404,15 +3336,9 @@ API.confirm = function () {
             'oauth_token_secret': tumblr_token_secret,
             'oauth_verifier': tumblr_verifier
         });
-        API.storage.local['delete']('tumblr_oauth_request_token');
-        API.storage.local['delete']('tumblr_oauth_request_token_secret');
-        API.storage.local['delete']('tumblr_oauth_request_verifier');
     }
 
 
-    var vimeo_token = API.storage.local.get('vimeo_oauth_request_token');
-    var vimeo_token_secret = API.storage.local.get('vimeo_oauth_request_token_secret');
-    var vimeo_verifier = API.storage.local.get('vimeo_oauth_request_verifier');
     if ('undefined' !== typeof vimeo_token && null !== vimeo_token && 'undefined' !== typeof vimeo_verifier && null !== vimeo_verifier) {
         API.publish('verifying', {
             service: 'tumblr',
@@ -3424,16 +3350,8 @@ API.confirm = function () {
             'oauth_token_secret': vimeo_token_secret,
             'oauth_verifier': vimeo_verifier
         });
-        API.storage.local['delete']('vimeo_oauth_request_token');
-        API.storage.local['delete']('vimeo_oauth_request_token_secret');
-        API.storage.local['delete']('vimeo_oauth_request_verifier');
     }
 
-
-
-    var yahoo_token = API.storage.local.get('yahoo_oauth_request_token');
-    var yahoo_token_secret = API.storage.local.get('yahoo_oauth_request_token_secret');
-    var yahoo_verifier = API.storage.local.get('yahoo_oauth_request_verifier');
     if ('undefined' !== typeof yahoo_token && null !== yahoo_token && 'undefined' !== typeof yahoo_verifier && null !== yahoo_verifier) {
         API.publish('verifying', {
             service: 'yahoo',
@@ -3445,14 +3363,8 @@ API.confirm = function () {
             'oauth_token_secret': yahoo_token_secret,
             'oauth_verifier': yahoo_verifier
         });
-        API.storage.local['delete']('yahoo_oauth_request_token');
-        API.storage.local['delete']('yahoo_oauth_request_token_secret');
-        API.storage.local['delete']('yahoo_oauth_request_verifier');
     }
 
-    var linkedin_token = API.storage.local.get('linkedin_oauth_request_token');
-    var linkedin_token_secret = API.storage.local.get('linkedin_oauth_request_token_secret');
-    var linkedin_verifier = API.storage.local.get('linkedin_oauth_request_verifier');
     if ('undefined' !== typeof linkedin_token && null !== linkedin_token && 'undefined' !== typeof linkedin_verifier && null !== linkedin_verifier) {
         API.publish('verifying', {
             service: 'linkedin',
@@ -3464,15 +3376,9 @@ API.confirm = function () {
             'oauth_token_secret': linkedin_token_secret,
             'oauth_verifier': linkedin_verifier
         });
-        API.storage.local['delete']('linkedin_oauth_request_token');
-        API.storage.local['delete']('linkedin_oauth_request_token_secret');
-        API.storage.local['delete']('linkedin_oauth_request_verifier');
     }
 
 
-    var evernote_token = API.storage.local.get('evernote_oauth_request_token');
-    var evernote_token_secret = API.storage.local.get('evernote_oauth_request_token_secret');
-    var evernote_verifier = API.storage.local.get('evernote_oauth_request_verifier');
     if ('undefined' !== typeof evernote_token && null !== evernote_token && 'undefined' !== typeof evernote_verifier && null !== evernote_verifier) {
         API.publish('verifying', {
             service: 'evernote',
@@ -3484,9 +3390,6 @@ API.confirm = function () {
             'oauth_token_secret': evernote_token_secret,
             'oauth_verifier': evernote_verifier
         });
-        API.storage.local['delete']('evernote_oauth_request_token');
-        API.storage.local['delete']('evernote_oauth_request_token_secret');
-        API.storage.local['delete']('evernote_oauth_request_verifier');
     }
 
 
@@ -3497,72 +3400,52 @@ API.detectLogin = function (redirect) {
     var url_vars = API.utilities.getUrlVars();
 
     if ('undefined' !== typeof url_vars.code && 'facebook' === url_vars.service) {
-        API.storage.local.set('facebook_code', url_vars.code);
         API.publish('verified', {
             service: 'facebook',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'facebook'));
     }
 
     if ('undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier) {
         if ('tumblr' === url_vars.service) {
-            API.storage.local.set('tumblr_oauth_request_token', url_vars.oauth_token);
-            API.storage.local.set('tumblr_oauth_request_verifier', url_vars.oauth_verifier);
             API.publish('verified', {
                 service: 'tumblr',
                 oauth_token: url_vars.oauth_token,
                 oauth_verifier: url_vars.oauth_verifier,
                 oauth_token_secret: url_vars.oauth_token_secret
             });
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'tumblr'));
         } else if ('yahoo' === url_vars.service) {
-            API.storage.local.set('yahoo_oauth_request_token', url_vars.oauth_token);
-            API.storage.local.set('yahoo_oauth_request_verifier', url_vars.oauth_verifier);
             API.publish('verified', {
                 service: 'yahoo',
                 oauth_token: url_vars.oauth_token,
                 oauth_verifier: url_vars.oauth_verifier
             });
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'yahoo'));
         } else if ('linkedin' === url_vars.service) {
-            API.storage.local.set('linkedin_oauth_request_token', url_vars.oauth_token);
-            API.storage.local.set('linkedin_oauth_request_verifier', url_vars.oauth_verifier);
             API.publish('verified', {
                 service: 'linkedin',
                 oauth_token: url_vars.oauth_token,
                 oauth_verifier: url_vars.oauth_verifier
             });
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'linkedin'));
         } else if ('vimeo' === url_vars.service) {
-            API.storage.local.set('vimeo_oauth_request_token', url_vars.oauth_token);
-            API.storage.local.set('vimeo_oauth_request_verifier', url_vars.oauth_verifier);
             API.publish('verified', {
                 service: 'vimeo',
                 oauth_token: url_vars.oauth_token,
                 oauth_verifier: url_vars.oauth_verifier,
                 oauth_token_secret: url_vars.oauth_token_secret
             });
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'vimeo'));
         } else if ('evernote' === url_vars.service) {
-            API.storage.local.set('evernote_oauth_request_token', url_vars.oauth_token);
-            API.storage.local.set('evernote_oauth_request_verifier', url_vars.oauth_verifier);
             API.publish('verified', {
                 service: 'evernote',
                 oauth_token: url_vars.oauth_token,
                 oauth_verifier: url_vars.oauth_verifier,
                 oauth_token_secret: url_vars.oauth_token_secret
             });
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'evernote'));
         } else { //twitter doesn't use service var TODO: fix?
-            API.storage.local.set('twitter_oauth_request_token', url_vars.oauth_token);
-            API.storage.local.set('twitter_oauth_request_verifier', url_vars.oauth_verifier);
             API.publish('verified', {
                 service: 'twitter',
                 oauth_token: url_vars.oauth_token,
                 oauth_verifier: url_vars.oauth_verifier
             });
-            API.state.replaceCurrent(API.redirectTo.replace(':service', 'twitter'));
         }
     }
 
@@ -3573,94 +3456,74 @@ API.detectLogin = function (redirect) {
     }
 
     if ('undefined' !== typeof url_vars.code && 'windows' === url_vars.service) {
-        API.storage.local.set('windows_code', url_vars.code);
         API.publish('verified', {
             service: 'windows',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'windows'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'github' === url_vars.service) {
-        API.storage.local.set('github_code', url_vars.code);
         API.publish('verified', {
             service: 'github',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'github'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service) {
-        API.storage.local.set('foursquare_code', url_vars.code);
         API.publish('verified', {
             service: 'foursquare',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'foursquare'));
     }
 
 
     if ('undefined' !== typeof url_vars.code && 'google' === url_vars.service) {
-        API.storage.local.set('google_code', url_vars.code);
         API.publish('verified', {
             service: 'google',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'google'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'instagram' === url_vars.service) {
-        API.storage.local.set('instagram_code', url_vars.code);
         API.publish('verified', {
             service: 'instagram',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'instagram'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'soundcloud' === url_vars.service) {
-        API.storage.local.set('soundcloud_code', url_vars.code);
         API.publish('verified', {
             service: 'soundcloud',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'soundcloud'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'wordpress' === url_vars.service) {
-        API.storage.local.set('wordpress_code', url_vars.code);
         API.publish('verified', {
             service: 'wordpress',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'wordpress'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'reddit' === url_vars.service) {
-        API.storage.local.set('reddit_code', url_vars.code);
         API.publish('verified', {
             service: 'reddit',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'reddit'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'youtube' === url_vars.service) {
-        API.storage.local.set('youtube_code', url_vars.code);
         API.publish('verified', {
             service: 'youtube',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'youtube'));
     }
 
     if ('undefined' !== typeof url_vars.code && 'blogger' === url_vars.service) {
-        API.storage.local.set('blogger_code', url_vars.code);
         API.publish('verified', {
             service: 'blogger',
             'code': url_vars.code
         });
-        API.state.replaceCurrent(API.redirectTo.replace(':service', 'blogger'));
     }
 
 };
@@ -4354,127 +4217,10 @@ API.evernote.account_request = function (data) {
     } else if ('evernote' === data.service && 'unauthorized' === data.account_status) {
 
         API.unsession('evernote');
-        API.state.replaceCurrent(API.redirectTo);
 
     }
 
 }
-
-
-/* History */
-
-API.state = API.state || {};
-API.history = !!window ? window.history : null;
-
-API.state.replaceCurrent = function (stateUrl, stateTitle, stateObj) {
-
-    if (!API.history) {
-        return;
-    }
-
-    if (null === stateObj || 'undefined' === typeof stateObj) {
-        stateObj = API.history.getCurrentStateObj;
-    }
-
-    API.history.replaceState(stateObj, stateTitle, stateUrl);
-};
-
-API.state.push = function (state, stateTitle, stateObj) {
-
-    if (!API.history) {
-        return;
-    }
-
-    if ('string' !== typeof state && state.length > 0) {
-        stateUrl = state.join('/');
-    } else {
-        stateUrl = state;
-    }
-
-    if (null === stateObj || 'undefined' === typeof stateObj) {
-        stateObj = API.history.getCurrentStateObj;
-    }
-
-    API.history.pushState(stateObj, stateTitle, stateUrl);
-
-};
-
-/* Storage */
-
-API.storage = {};
-
-/* Local Storage */
-
-API.store = localStorage;
-API.storage.local = {};
-
-API.storage.local.set = function (set_key, set_value) {
-    if ('string' !== typeof set_value) {
-        set_value = JSON.stringify(set_value);
-    }
-    return API.store.setItem(API.prefix + '_' + set_key, set_value);
-};
-
-API.storage.local['delete'] = function (key) {
-    return API.store.removeItem(API.prefix + '_' + key);
-};
-
-API.storage.local.get = function (get_key) {
-    var res = API.store.getItem(API.prefix + '_' + get_key);
-    try {
-        parsed = JSON.parse(API.store.getItem(API.prefix + '_' + get_key));
-        res = parsed;
-    } catch (e) { /* do nothing */
-    }
-    return res;
-};
-
-API.storage.local.set_batch = function (dictionary) {
-    for (item in dictionary) {
-        if (dictionary.hasOwnProperty(item)) {
-            API.storage.local.set(item, dictionary[item]);
-        }
-    }
-};
-
-API.storage.local.delete_batch = function (keys) {
-    var i;
-    for (i = 0; i <= keys.length; i += 1) {
-        API.storage.local['delete'](keys[i]);
-    }
-}
-
-/* Session Storage */
-
-API.storage.session = {};
-API.sessionStorage = sessionStorage;
-
-API.storage.session.set = function (set_key, set_value) {
-    return API.sessionStorage.setItem(API.prefix + '_' + set_key, set_value);
-};
-
-API.storage.session['delete'] = function (key) {
-    return API.sessionStorage.removeItem(API.prefix + '_' + key);
-};
-
-API.storage.session.get = function (get_key) {
-    return API.sessionStorage.getItem(API.prefix + '_' + get_key);
-};
-
-API.storage.session.set_batch = function (dictionary) {
-    for (item in dictionary) {
-        if (dictionary.hasOwnProperty(item)) {
-            API.storage.session.set(item, dictionary[item]);
-        }
-    }
-};
-
-API.storage.session.delete_batch = function (keys) {
-    var i;
-    for (i = 0; i <= keys.length; i += 1) {
-        API.storage.session['delete'](keys[i]);
-    }
-};
 
 API.utilities = API.utilities || {};
 API.utilities.getUrlVars = function () {
