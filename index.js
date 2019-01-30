@@ -3171,7 +3171,7 @@ API.twitter.handle_confirm = function (params) {
 };
 
     
-API.confirm = function (args) {
+API.confirm = function (args = {}) {
 
     let {facebook_code, twitter_token, twitter_verifier, foursquare_code, google_code, blogger_code, youtube_code, windows_code, linkedin_token, linkedin_token_secret, linkedin_verifier, evernote_token, evernote_token_secret, evernote_verifier, yahoo_token, yahoo_token_secret, yahoo_verifier, vimeo_token, vimeo_token_secret, vimeo_verifier, reddit_code, wordpress_code, instagram_code, github_code, soundcloud_code, tumblr_token, tumblr_token_secret, tumblr_verifier} = args;
 
