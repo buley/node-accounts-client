@@ -4180,5 +4180,4 @@ API.evernote.account_request = function (data) {
 
 }
 
-exports.default = Public;
-
+exports = Public;
