@@ -171,32 +171,7 @@ API.api['delete'] = function (url, data, callback, headers) {
 
 
 API.api.ajax = function (req) {
-    var request, type = (type || '').toUpperCase(),
-        that = this;
-    if ('undefined' !== typeof window.XMLHttpRequest) {
-        request = new XMLHttpRequest();
-    } else {
-        request = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    request.onreadystatechange = function () {
-        if (4 === request.readyState) {
-            if (200 === request.status) {
-                if ('function' === typeof req.success) {
-                    req.success.apply(that, [request]);
-                }
-            } else {
-                if ('function' === typeof req.success) {
-                    req.error.apply(that, [request]);
-                }
-            }
-        }
-    };
-    if ('string' !== typeof req.data) {
-        req.data = JSON.stringify(req.data);
-    }
-    request.open(req.type, req.url, true);
-    request.setRequestHeader("Content-Type", "application/json");
-    request.send(req.data);
+    API.publish('ajax', req);
 };
 
 API.getActiveServices = function () {
@@ -2818,7 +2793,6 @@ API.facebook.account_request = function (data) {
             service: 'facebook',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('facebook' === data.service && 'authorized' === data.status && 'undefined' === typeof data.connect_status) {
 
@@ -2901,7 +2875,6 @@ API.blogger.account_request = function (data) {
             service: 'blogger',
             'url': data.login_url
         });
-        window.location = data.login_url;
     } else if ('blogger' === data.service && 'authorized' === data.status && 'undefined' === typeof data.connect_status) {
         API.publish('confirm', {
             service: 'blogger'
@@ -3592,7 +3565,6 @@ API.yahoo.account_request = function (data) {
             service: 'yahoo',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('yahoo' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -3643,7 +3615,6 @@ API.windows.account_request = function (data) {
             service: 'windows',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('windows' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -3693,7 +3664,6 @@ API.wordpress.account_request = function (data) {
             service: 'wordpress',
             'url': data.login_url
         });
-        window.location = data.login_url;
     } else if ('wordpress' === data.service && 'undefined' !== typeof data.connect_status) {
         if ('connected' === data.connect_status) {
             API.publish('confirmed', {
@@ -3739,7 +3709,6 @@ API.github.account_request = function (data) {
             service: 'github',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('github' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -3796,8 +3765,6 @@ API.vimeo.account_request = function (data) {
             'url': data.login_url
         });
 
-        window.location = data.login_url;
-
     } else if ('vimeo' === data.service && 'undefined' !== typeof data.connect_status) {
 
         if ('connected' === data.connect_status) {
@@ -3853,8 +3820,6 @@ API.tumblr.account_request = function (data) {
             'url': data.login_url
         });
 
-        window.location = data.login_url;
-
     } else if ('tumblr' === data.service && 'undefined' !== typeof data.connect_status) {
 
         if ('connected' === data.connect_status) {
@@ -3907,7 +3872,6 @@ API.twitter.account_request = function (data) {
             service: 'twitter',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('twitter' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -3963,7 +3927,6 @@ API.instagram.account_request = function (data) {
             service: 'instagram',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('instagram' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -4022,7 +3985,6 @@ API.linkedin.account_request = function (data) {
             service: 'linkedin',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('linkedin' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -4079,7 +4041,6 @@ API.reddit.account_request = function (data) {
             service: 'reddit',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('reddit' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -4135,7 +4096,6 @@ API.soundcloud.account_request = function (data) {
             service: 'soundcloud',
             'url': data.login_url
         });
-        window.location = data.login_url;
 
     } else if ('soundcloud' === data.service && 'undefined' !== typeof data.connect_status) {
 
@@ -4191,8 +4151,6 @@ API.evernote.account_request = function (data) {
             'url': data.login_url
         });
 
-        window.location = data.login_url;
-
     } else if ('evernote' === data.service && 'undefined' !== typeof data.connect_status) {
 
         if ('connected' === data.connect_status) {
@@ -4221,18 +4179,6 @@ API.evernote.account_request = function (data) {
     }
 
 }
-
-API.utilities = API.utilities || {};
-API.utilities.getUrlVars = function () {
-    var vars = {},
-        pieces = window.document.location.href.split('?').splice(1).join('&').split('#'),
-        parts = ("?" + pieces[0]).replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
-            vars[key] = value;
-        });
-    return vars;
-};
-
-API.picked = API.storage.local.get('profile_picks') || {};
 
 exports.default = Public;
 
