@@ -3171,7 +3171,9 @@ API.twitter.handle_confirm = function (params) {
 };
 
     
-API.confirm = function (url_vars, facebook_code, twitter_token, twitter_verifier, foursquare_code, google_code, blogger_code, youtube_code, windows_code, linkedin_token, linkedin_token_secret, linkedin_verifier, evernote_token, evernote_token_secret, evernote_verifier, yahoo_token, yahoo_token_secret, yahoo_verifier, vimeo_token, vimeo_token_secret, vimeo_verifier, reddit_code, wordpress_code, instagram_code, github_code, soundcloud_code, tumblr_token, tumblr_token_secret, tumblr_verifier) {
+API.confirm = function (args) {
+
+    let {facebook_code, twitter_token, twitter_verifier, foursquare_code, google_code, blogger_code, youtube_code, windows_code, linkedin_token, linkedin_token_secret, linkedin_verifier, evernote_token, evernote_token_secret, evernote_verifier, yahoo_token, yahoo_token_secret, yahoo_verifier, vimeo_token, vimeo_token_secret, vimeo_verifier, reddit_code, wordpress_code, instagram_code, github_code, soundcloud_code, tumblr_token, tumblr_token_secret, tumblr_verifier} = args;
 
     if ('undefined' !== typeof facebook_code && null !== facebook_code) {
         API.publish('verifying', {
@@ -3368,132 +3370,135 @@ API.confirm = function (url_vars, facebook_code, twitter_token, twitter_verifier
 
 API.detectLogin = function (redirect, url_vars) {
 
-    if ('undefined' !== typeof url_vars.code && 'facebook' === url_vars.service) {
-        API.publish('verified', {
-            service: 'facebook',
-            'code': url_vars.code
-        });
-    }
+    if (!!url_vars) {
+        if ('undefined' !== typeof url_vars.code && 'facebook' === url_vars.service) {
+            API.publish('verified', {
+                service: 'facebook',
+                'code': url_vars.code
+            });
+        }
 
-    if ('undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier) {
-        if ('tumblr' === url_vars.service) {
+        if ('undefined' !== typeof url_vars.oauth_token && 'undefined' !== typeof url_vars.oauth_verifier) {
+            if ('tumblr' === url_vars.service) {
+                API.publish('verified', {
+                    service: 'tumblr',
+                    oauth_token: url_vars.oauth_token,
+                    oauth_verifier: url_vars.oauth_verifier,
+                    oauth_token_secret: url_vars.oauth_token_secret
+                });
+            } else if ('yahoo' === url_vars.service) {
+                API.publish('verified', {
+                    service: 'yahoo',
+                    oauth_token: url_vars.oauth_token,
+                    oauth_verifier: url_vars.oauth_verifier
+                });
+            } else if ('linkedin' === url_vars.service) {
+                API.publish('verified', {
+                    service: 'linkedin',
+                    oauth_token: url_vars.oauth_token,
+                    oauth_verifier: url_vars.oauth_verifier
+                });
+            } else if ('vimeo' === url_vars.service) {
+                API.publish('verified', {
+                    service: 'vimeo',
+                    oauth_token: url_vars.oauth_token,
+                    oauth_verifier: url_vars.oauth_verifier,
+                    oauth_token_secret: url_vars.oauth_token_secret
+                });
+            } else if ('evernote' === url_vars.service) {
+                API.publish('verified', {
+                    service: 'evernote',
+                    oauth_token: url_vars.oauth_token,
+                    oauth_verifier: url_vars.oauth_verifier,
+                    oauth_token_secret: url_vars.oauth_token_secret
+                });
+            } else { //twitter doesn't use service var TODO: fix?
+                API.publish('verified', {
+                    service: 'twitter',
+                    oauth_token: url_vars.oauth_token,
+                    oauth_verifier: url_vars.oauth_verifier
+                });
+            }
+        }
+
+        if ('undefined' !== typeof url_vars.logout && 'undefined' !== typeof url_vars.service) {
+            if ('facebook' === url_vars.service) {
+                API.facebook.account_request(url_vars);
+            }
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'windows' === url_vars.service) {
             API.publish('verified', {
-                service: 'tumblr',
-                oauth_token: url_vars.oauth_token,
-                oauth_verifier: url_vars.oauth_verifier,
-                oauth_token_secret: url_vars.oauth_token_secret
+                service: 'windows',
+                'code': url_vars.code
             });
-        } else if ('yahoo' === url_vars.service) {
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'github' === url_vars.service) {
             API.publish('verified', {
-                service: 'yahoo',
-                oauth_token: url_vars.oauth_token,
-                oauth_verifier: url_vars.oauth_verifier
+                service: 'github',
+                'code': url_vars.code
             });
-        } else if ('linkedin' === url_vars.service) {
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service) {
             API.publish('verified', {
-                service: 'linkedin',
-                oauth_token: url_vars.oauth_token,
-                oauth_verifier: url_vars.oauth_verifier
+                service: 'foursquare',
+                'code': url_vars.code
             });
-        } else if ('vimeo' === url_vars.service) {
+        }
+
+
+        if ('undefined' !== typeof url_vars.code && 'google' === url_vars.service) {
             API.publish('verified', {
-                service: 'vimeo',
-                oauth_token: url_vars.oauth_token,
-                oauth_verifier: url_vars.oauth_verifier,
-                oauth_token_secret: url_vars.oauth_token_secret
+                service: 'google',
+                'code': url_vars.code
             });
-        } else if ('evernote' === url_vars.service) {
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'instagram' === url_vars.service) {
             API.publish('verified', {
-                service: 'evernote',
-                oauth_token: url_vars.oauth_token,
-                oauth_verifier: url_vars.oauth_verifier,
-                oauth_token_secret: url_vars.oauth_token_secret
+                service: 'instagram',
+                'code': url_vars.code
             });
-        } else { //twitter doesn't use service var TODO: fix?
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'soundcloud' === url_vars.service) {
             API.publish('verified', {
-                service: 'twitter',
-                oauth_token: url_vars.oauth_token,
-                oauth_verifier: url_vars.oauth_verifier
+                service: 'soundcloud',
+                'code': url_vars.code
+            });
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'wordpress' === url_vars.service) {
+            API.publish('verified', {
+                service: 'wordpress',
+                'code': url_vars.code
+            });
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'reddit' === url_vars.service) {
+            API.publish('verified', {
+                service: 'reddit',
+                'code': url_vars.code
+            });
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'youtube' === url_vars.service) {
+            API.publish('verified', {
+                service: 'youtube',
+                'code': url_vars.code
+            });
+        }
+
+        if ('undefined' !== typeof url_vars.code && 'blogger' === url_vars.service) {
+            API.publish('verified', {
+                service: 'blogger',
+                'code': url_vars.code
             });
         }
     }
 
-    if ('undefined' !== typeof url_vars.logout && 'undefined' !== typeof url_vars.service) {
-        if ('facebook' === url_vars.service) {
-            API.facebook.account_request(url_vars);
-        }
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'windows' === url_vars.service) {
-        API.publish('verified', {
-            service: 'windows',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'github' === url_vars.service) {
-        API.publish('verified', {
-            service: 'github',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'foursquare' === url_vars.service) {
-        API.publish('verified', {
-            service: 'foursquare',
-            'code': url_vars.code
-        });
-    }
-
-
-    if ('undefined' !== typeof url_vars.code && 'google' === url_vars.service) {
-        API.publish('verified', {
-            service: 'google',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'instagram' === url_vars.service) {
-        API.publish('verified', {
-            service: 'instagram',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'soundcloud' === url_vars.service) {
-        API.publish('verified', {
-            service: 'soundcloud',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'wordpress' === url_vars.service) {
-        API.publish('verified', {
-            service: 'wordpress',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'reddit' === url_vars.service) {
-        API.publish('verified', {
-            service: 'reddit',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'youtube' === url_vars.service) {
-        API.publish('verified', {
-            service: 'youtube',
-            'code': url_vars.code
-        });
-    }
-
-    if ('undefined' !== typeof url_vars.code && 'blogger' === url_vars.service) {
-        API.publish('verified', {
-            service: 'blogger',
-            'code': url_vars.code
-        });
-    }
 
 };
 
